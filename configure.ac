@@ -1,6 +1,6 @@
-# $Id: configure.ac,v 1.1 2005/03/03 09:08:47 mihajlov Exp $
+# $Id: configure.ac,v 1.2 2005/03/03 09:26:37 mihajlov Exp $
 
-AC_INIT(MOF Compiler, 0.6.5a, mihajlov@de.ibm.com,mofc)
+AC_INIT(MOF Compiler, 0.6.5b, mihajlov@de.ibm.com,mofc)
 AC_CONFIG_SRCDIR([hash.c])
 AC_CONFIG_HEADER([config.h])
 
@@ -33,7 +33,7 @@ AC_ARG_WITH(sfcb,
 		              [use sfcb backend. In that case this package must
 			       be in a sub-directory of the sfcb package.])])
 
-if test "$with_sfcb" != no; then
+if test "$with_sfcb" == yes; then
    if test x"$SFCB_DIR" = x; then
       SFCB_DIR=..
    fi
