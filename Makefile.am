@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.1 2005/03/03 09:08:47 mihajlov Exp $
+# $Id: Makefile.am,v 1.2 2005/04/01 10:48:13 mihajlov Exp $
 
 AM_LFLAGS=-i
 AM_YFLAGS=-d
@@ -22,3 +22,12 @@ mofc_CPPFLAGS=@BACKEND_INCLUDES@
 
 EXTRA_DIST=runtest.sh tests/test1.mof tests/include/test2.mof \
 	tests/include/test3.mof 
+
+
+if ALTERNATE_MOFCNAME
+install-exec-hook:
+	mv $(DESTDIR)$(bindir)/mofc $(DESTDIR)$(bindir)/$(MOFCNAME)
+
+uninstall-hook:
+	rm $(DESTDIR)$(bindir)/$(MOFCNAME)
+endif

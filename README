@@ -62,6 +62,8 @@ Except for being slightly more verbose the difference is that
 mofc.out is now a binary file that can be used as classSchemas file
 of the SFCB.
 
+NOTE: Upon installation the executable will be renamed from mofc to sfcbmof.
+
 Building Embedded in SFCB
 -------------------------
 There's also another possibility to build an SFCB version of MOFC. In case
@@ -79,7 +81,7 @@ Another thing to observe, is that MOFC is truly stand alone: that means it
 must be fed with information about parent classes, qualifiers and so on.
 This basically means that the only meaningful invocation will look like this:
 
-  mofc -I <CIM Schema Directory> -i CIM_Schemaxx.mof your.mof [other.mof ...]
+  sfcbmof -I <CIM Schema Directory> -i CIM_Schemaxx.mof your.mof [other.mof ...]
 
 You can download the CIM Schema files from http://www.dmtf.org.
 
@@ -93,4 +95,8 @@ from the output file.
 
 Documentation:
 --------------
-None yet, except for mofc -h (Exercise left to the reader).
+None yet, except for sfcbmof/mofc -h (Exercise left to the reader).
+
+CVS Instructions:
+-----------------
+If you checkout from CVS run autoconfiscate.sh to prepare for building.

@@ -1,6 +1,6 @@
-# $Id: configure.ac,v 1.2 2005/03/03 09:26:37 mihajlov Exp $
+# $Id: configure.ac,v 1.3 2005/04/01 10:48:14 mihajlov Exp $
 
-AC_INIT(MOF Compiler, 0.6.5b, mihajlov@de.ibm.com,mofc)
+AC_INIT(MOF Compiler, 0.7.0, mihajlov@de.ibm.com,mofc)
 AC_CONFIG_SRCDIR([hash.c])
 AC_CONFIG_HEADER([config.h])
 
@@ -33,15 +33,26 @@ AC_ARG_WITH(sfcb,
 		              [use sfcb backend. In that case this package must
 			       be in a sub-directory of the sfcb package.])])
 
+
+if test x"$SFCB_DIR" != x && test "$with_sfcb" != yes ; then
+   AC_WARN([SFCB_DIR has been specified ... assuming --with_sfcb])
+   with_sfcb=yes
+fi
+
+unset MOFCNAME
+
 if test "$with_sfcb" == yes; then
    if test x"$SFCB_DIR" = x; then
       SFCB_DIR=..
    fi
+   MOFCNAME=sfcbmof
+   BACKEND_STRING=sfcb
    BACKEND_OBJ='backend_sfcb.$(OBJEXT)'
    BACKEND_LIBS="-L $SFCB_DIR/.libs -lsfcBrokerCore"
    BACKEND_INCLUDES="-I $SFCB_DIR"
    AC_DEFINE(BACKEND_INFO,"SFCB Backend",[Backend Identification String])
 else
+   BACKEND_STRING=default
    BACKEND_OBJ='backend_print.$(OBJEXT)'
    BACKEND_LIBS=
    BACKEND_INCLUDES=
@@ -94,12 +105,24 @@ if test "$enable_relax_mofsyntax" = yes; then
   AC_DEFINE(RELAXED_MOF,,[Relaxed MOF Parsing])
 fi
 
-AM_CONDITIONAL(TESTSCANNER,[test "$enable_testscanner" = yes]) 
+AM_CONDITIONAL(TESTSCANNER,[test "$enable_testscanner" == yes]) 
+AM_CONDITIONAL(ALTERNATE_MOFCNAME,[test x"$MOFCNAME" != x]) 
 
+AC_SUBST(MOFCNAME)
 AC_SUBST(BACKEND_OBJ)
 AC_SUBST(BACKEND_LIBS)
 AC_SUBST(BACKEND_INCLUDES)
 
 # Output control
+echo =================================================================
+echo mofc configuration complete
+echo configured for $BACKEND_STRING backend
+if test "$with_sfcb" == yes
+then
+echo SFCB_DIR=$SFCB_DIR
+fi
+echo =================================================================
+
+
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
