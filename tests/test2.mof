@@ -1,0 +1,5 @@
+#pragma locale ( "en_US" )
+
+class test_f : test_d {
+  uint8 fvar;
+};
