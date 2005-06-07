@@ -1,5 +1,5 @@
 /**
- * $Id: backend_sfcb.c,v 1.2 2005/06/07 08:39:37 mihajlov Exp $
+ * $Id: backend_sfcb.c,v 1.3 2005/06/07 12:27:23 mihajlov Exp $
  *
  * (C) Copyright IBM Corp. 2004
  * 
@@ -90,6 +90,9 @@ static CMPIData make_cmpi_data( type_type lextype, int arrayspec,
   CMPIData arr_data;
   int i = 0;
   
+  data.type = make_cmpi_type(lextype,arrayspec);
+  data.value.uint64 = 0L;        /* set to binary zeros */
+  
   if ( vals == NULL )  {
     data.state = CMPI_nullValue;
   } else if (vals -> val_value == NULL) {
@@ -99,104 +102,75 @@ static CMPIData make_cmpi_data( type_type lextype, int arrayspec,
     data.state = CMPI_goodValue;
   }    
   
-
-  data.type = make_cmpi_type(lextype,arrayspec);
-  if (data.type & CMPI_ARRAY) {
-    /* process array entries */
-    data.value.array = 
-      CMNewArray(Broker,arrayspec,data.type&~CMPI_ARRAY,NULL);
-    while (vals && vals -> val_value) {
-      arr_data = make_cmpi_data(lextype,-1,vals);
-      CMSetArrayElementAt(data.value.array, i, &arr_data.value, data.type);
-      i++;
-      vals = vals -> val_next;
-    }
-  } else {
-    data.value.uint64 = 0L;        /* set to binary zeros */
-    switch (data.type & ~CMPI_ARRAY) {
-    case CMPI_uint8:
-      if ( data.state == CMPI_goodValue ) {
+  if ( data.state == CMPI_goodValue ) {
+    if (data.type & CMPI_ARRAY) {
+      /* process array entries */
+      data.value.array = 
+	CMNewArray(Broker,arrayspec,data.type&~CMPI_ARRAY,NULL);
+      while (vals && vals -> val_value) {
+	arr_data = make_cmpi_data(lextype,-1,vals);
+	CMSetArrayElementAt(data.value.array, i, &arr_data.value, data.type);
+	i++;
+	vals = vals -> val_next;
+      }
+    } else {
+      switch (data.type & ~CMPI_ARRAY) {
+      case CMPI_uint8:
 	sscanf(vals -> val_value, "%hhu", &data.value.uint8 );
-      }
-      break;
-    case CMPI_sint8:
-      if ( data.state == CMPI_goodValue ) {
+	break;
+      case CMPI_sint8:
 	sscanf(vals -> val_value, "%hhd", &data.value.sint8 );
-      }
-      break;
-    case CMPI_uint16:
-      if ( data.state == CMPI_goodValue ) {
+	break;
+      case CMPI_uint16:
 	sscanf(vals -> val_value, "%hu", &data.value.uint16 );
-      }
-      break;
-    case CMPI_sint16:
-      if ( data.state == CMPI_goodValue ) {
+	break;
+      case CMPI_sint16:
 	sscanf(vals -> val_value, "%hd", &data.value.sint16 );
-      }
-      break;
-    case CMPI_uint32:
-      if ( data.state == CMPI_goodValue ) {
+	break;
+      case CMPI_uint32:
 	sscanf(vals -> val_value, "%lu", &data.value.uint32 );
-      }
-      break;
-    case CMPI_sint32:
-      if ( data.state == CMPI_goodValue ) {
+	break;
+      case CMPI_sint32:
 	sscanf(vals -> val_value, "%ld", &data.value.sint32 );
-      }
-      break;
-    case CMPI_uint64:
-      if ( data.state == CMPI_goodValue ) {
+	break;
+      case CMPI_uint64:
 	sscanf(vals -> val_value, "%llu", &data.value.uint64);
-      }
-      break;
-    case CMPI_sint64:
-      if ( data.state == CMPI_goodValue ) {
+	break;
+      case CMPI_sint64:
 	sscanf(vals -> val_value, "%lld", &data.value.uint64 );
-      }
-      break;
-    case CMPI_real32:
-      if ( data.state == CMPI_goodValue ) {
+	break;
+      case CMPI_real32:
 	sscanf(vals -> val_value, "%f", &data.value.real32 );
-      }
-      break;
-    case CMPI_real64:
-      if ( data.state == CMPI_goodValue ) {
+	break;
+      case CMPI_real64:
 	sscanf(vals -> val_value, "%lf", &data.value.real64 );
-      }
-      break;
-    case CMPI_char16:
-      /* this one is suspect to produce garbage */
-      if ( data.state == CMPI_goodValue ) {
+	break;
+      case CMPI_char16:
+	/* this one is suspect to produce garbage */
 	sscanf(vals -> val_value, "%c", &data.value.uint8 );
-      }
-      break;
-    case CMPI_string:
-      if ( data.state == CMPI_goodValue ) {
+	break;
+      case CMPI_string:
 	data.value.string = CMNewString(Broker,vals -> val_value,NULL);
-      }
-      break;
-    case CMPI_boolean:
-      if ( data.state == CMPI_goodValue ) {
+	break;
+      case CMPI_boolean:
 	if (strcasecmp("true",vals -> val_value) == 0) {
 	  data.value.boolean = 1;
 	} else {
 	  data.value.boolean = 0;
 	}
-      }
-      break;
-    case CMPI_dateTime:
-      if ( data.state == CMPI_goodValue ) {
+	break;
+      case CMPI_dateTime:
 	data.value.dateTime = 
 	  CMNewDateTimeFromChars(Broker,vals -> val_value,NULL);
 	if (data.value.dateTime == NULL) {
 	  fprintf(stderr,"failed to build datetime from %s", vals -> val_value);
+	  data.state = CMPI_nullValue;
 	}
+	break;
+      default:
+	data.value.ref = CMNewObjectPath(Broker,NULL,
+					 lextype.type_ref -> class_id,NULL);
       }
-      break;
-    default:
-      data.state = CMPI_goodValue;
-      data.value.ref = CMNewObjectPath(Broker,NULL,
-				       lextype.type_ref -> class_id,NULL);
     }
   }
   return data;
