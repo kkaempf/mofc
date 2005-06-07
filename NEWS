@@ -1,0 +1,5 @@
+Changes in 0.7.1
+================
+
+Bugs fixed:
+- 1216246: Array type value/qualifiers are always NULL

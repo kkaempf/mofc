@@ -1,0 +1,5 @@
+2005-06-07    <mihajlov@localhost.localdomain>
+
+	* backend_sfcb.c (make_cmpi_data):
+	Bug 1216246 fixed: incorrect handling of array values.
+
