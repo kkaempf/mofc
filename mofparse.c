@@ -1,5 +1,5 @@
 /**
- * $Id: mofparse.c,v 1.1 2005/03/03 09:08:48 mihajlov Exp $
+ * $Id: mofparse.c,v 1.2 2005/06/07 09:05:54 mihajlov Exp $
  *
  * (C) Copyright IBM Corp. 2004
  * 
@@ -31,8 +31,6 @@
 #error "config.h missing -- did you run ./configure ?"
 #endif
 
-
-static char * copyright = "(C) Copyright IBM Corp. 2004";
 
 static int opt_verbose = 0; 
 static int opt_version = 0;
@@ -89,8 +87,7 @@ static void usage(const char * name)
 
 static void version()
 {
-  printf("MOF Compiler Version %s %s with %s\n",VERSION,
-	  copyright,BACKEND_INFO);
+  printf("MOF Compiler Version %s with %s\n",VERSION,BACKEND_INFO);
 }
 
 static void help(const char * name)
