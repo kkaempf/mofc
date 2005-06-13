@@ -1,5 +1,5 @@
 /**
- * $Id: backend_sfcb.c,v 1.3 2005/06/07 12:27:23 mihajlov Exp $
+ * $Id: backend_sfcb.c,v 1.4 2005/06/13 23:29:35 a3schuur Exp $
  *
  * (C) Copyright IBM Corp. 2004
  * 
@@ -38,6 +38,7 @@ extern ClClass *ClClassNew(const char *cn, const char *pa);
 extern ClClass *ClClassRebuildClass(ClClass * cls, void *area);
 extern void ClClassFreeClass(ClClass * cls);
 extern char *ClClassToString(ClClass * cls);
+extern CMPIStatus simpleArrayAdd(CMPIArray * array, CMPIValue * val, CMPIType type);
 
 extern CMPIBroker *Broker;
 
@@ -89,6 +90,7 @@ static CMPIData make_cmpi_data( type_type lextype, int arrayspec,
   CMPIData data;
   CMPIData arr_data;
   int i = 0;
+  CMPIStatus st;
   
   data.type = make_cmpi_type(lextype,arrayspec);
   data.value.uint64 = 0L;        /* set to binary zeros */
@@ -106,10 +108,10 @@ static CMPIData make_cmpi_data( type_type lextype, int arrayspec,
     if (data.type & CMPI_ARRAY) {
       /* process array entries */
       data.value.array = 
-	CMNewArray(Broker,arrayspec,data.type&~CMPI_ARRAY,NULL);
+	CMNewArray(Broker,0,data.type&~CMPI_ARRAY,NULL);
       while (vals && vals -> val_value) {
 	arr_data = make_cmpi_data(lextype,-1,vals);
-	CMSetArrayElementAt(data.value.array, i, &arr_data.value, data.type);
+     st=simpleArrayAdd(data.value.array, &arr_data.value, data.type&~CMPI_ARRAY);
 	i++;
 	vals = vals -> val_next;
       }
@@ -205,7 +207,7 @@ static int sfcb_add_class(FILE * f, hashentry * he, class_entry * ce)
     htinsert( he, 
 	      upstrdup(ce -> class_id, 
 		       strlen(ce -> class_id)), strlen(ce -> class_id),
-	      (void *)1);
+	      (void *)1); 
     sfcbClass = ClClassNew( ce -> class_id, 
 			    ce -> class_parent ? 
 			    ce -> class_parent -> class_id : NULL );
