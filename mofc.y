@@ -1,5 +1,5 @@
 /**
- * $Id: mofc.y,v 1.1 2005/03/03 09:08:48 mihajlov Exp $
+ * $Id: mofc.y,v 1.2 2005/06/14 15:08:28 mihajlov Exp $
  *
  * (C) Copyright IBM Corp. 2004
  * 
@@ -70,6 +70,7 @@ extern class_chain  * cls_chain_current;
 %token <lval_literal> IntLiteral
 %token <lval_literal> FloatLiteral
 %token <lval_literal> StringLiteral
+%token <lval_literal> CharLiteral
 %token <lval_literal> BoolLiteral
 %token <lval_literal> NullLiteral
 %token AS
@@ -279,6 +280,7 @@ initial_value : base_literal {$$=make_value_list($1);}
 
 base_literal : IntLiteral
              | FloatLiteral
+             | CharLiteral {$$=make_char($1);}
              | string_literal_list
              | BoolLiteral
              | NullLiteral

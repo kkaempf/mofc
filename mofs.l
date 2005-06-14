@@ -1,5 +1,5 @@
 /**
- * $Id: mofs.l,v 1.1 2005/03/03 09:08:48 mihajlov Exp $
+ * $Id: mofs.l,v 1.2 2005/06/14 15:08:28 mihajlov Exp $
  *
  * (C) Copyright IBM Corp. 2004
  * 
@@ -151,7 +151,7 @@ punctuation             [;,.:=(){}]
 #if ! defined SCANDEBUG
                           yylval.lval_literal = strdup(yytext);
 #endif
-                          return token(StringLiteral);
+                          return token(CharLiteral);
                         }
 
 {punctuation}|"["|"]"   {

@@ -1,5 +1,5 @@
 /**
- * $Id: symtab.c,v 1.1 2005/03/03 09:08:48 mihajlov Exp $
+ * $Id: symtab.c,v 1.2 2005/06/14 15:08:28 mihajlov Exp $
  *
  * (C) Copyright IBM Corp. 2004
  * 
@@ -319,6 +319,16 @@ char * make_string(const char * string)
   char * dups;
   char *strstart = strchr(string,'"');
   char *strend = strrchr(string,'"');
+  dups = calloc( strend - strstart, 1 );
+  strncpy(dups,strstart + 1,strend-strstart - 1);
+  return dups;
+}
+
+char * make_char(const char * string)
+{
+  char * dups;
+  char *strstart = strchr(string,'\'');
+  char *strend = strrchr(string,'\'');
   dups = calloc( strend - strstart, 1 );
   strncpy(dups,strstart + 1,strend-strstart - 1);
   return dups;

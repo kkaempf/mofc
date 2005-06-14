@@ -1,3 +1,13 @@
+2005-06-14    <mihajlov@dyn-9-152-143-42.boeblingen.de.ibm.com>
+
+	* mofc.y: 
+	* mofc.l:
+	Bug 1220394: Syntax Support for char literals.
+
+	* symtab.c:
+	* symtab.h:
+	Bug 1220394: Helper functions for char literal extraction added.
+
 2005-06-13    <schuur@localhost.localdomain>
 
 	* backend_sfcb.c:

@@ -1,5 +1,5 @@
 /**
- * $Id: symtab.h,v 1.1 2005/03/03 09:08:48 mihajlov Exp $
+ * $Id: symtab.h,v 1.2 2005/06/14 15:08:28 mihajlov Exp $
  *
  * (C) Copyright IBM Corp. 2004
  * 
@@ -142,6 +142,7 @@ void qualifier_list_add( qual_chain * qu_ch1, qual_chain * qu_ch2 );
 value_chain * make_value_list(const char * value);
 void value_list_add(value_chain * val_ch1, const char * val);
 char * make_string(const char * string);
+char * make_char(const char * string);
 char * append_string(char * string1, const char * string2);
 prop_or_method_list * make_pom_list(qual_chain * qu_ch,
 				    type_type typeid,
