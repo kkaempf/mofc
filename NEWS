@@ -1,3 +1,9 @@
+Changes in 0.7.2
+================
+
+Bugs fixed:
+- 1220035: Corrected dynamic CMPI array handling.
+
 Changes in 0.7.1
 ================
 

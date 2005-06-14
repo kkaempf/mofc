@@ -1,6 +1,6 @@
-# $Id: configure.ac,v 1.4 2005/06/07 08:39:37 mihajlov Exp $
+# $Id: configure.ac,v 1.5 2005/06/14 09:01:40 mihajlov Exp $
 
-AC_INIT(MOF Compiler, 0.7.1, sblim-devel@lists.sourceforge.net,mofc)
+AC_INIT(MOF Compiler, 0.7.2, sblim-devel@lists.sourceforge.net,mofc)
 AC_CONFIG_SRCDIR([hash.c])
 AC_CONFIG_HEADER([config.h])
 

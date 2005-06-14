@@ -1,3 +1,8 @@
+2005-06-13    <schuur@localhost.localdomain>
+
+	* backend_sfcb.c:
+	Bug 122035 fixed: incorrect handling of qualifier values.
+
 2005-06-07    <mihajlov@localhost.localdomain>
 
 	* backend_sfcb.c (make_cmpi_data):
