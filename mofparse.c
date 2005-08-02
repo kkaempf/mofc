@@ -1,5 +1,5 @@
 /**
- * $Id: mofparse.c,v 1.2 2005/06/07 09:05:54 mihajlov Exp $
+ * $Id: mofparse.c,v 1.3 2005/08/02 11:07:45 a3schuur Exp $
  *
  * (C) Copyright IBM Corp. 2004
  * 
@@ -46,7 +46,7 @@ extern backend_type * backend_ptr;
 
 static int parse_options(int argc, char * argv[])
 {
-  char opt;
+  int opt;
   while ((opt=getopt(argc,argv,valid_options)) != -1) {
     switch (opt) {
     case 'b': 
