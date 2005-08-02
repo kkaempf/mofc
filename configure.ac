@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.5 2005/06/14 09:01:40 mihajlov Exp $
+# $Id: configure.ac,v 1.6 2005/08/02 17:40:44 a3schuur Exp $
 
 AC_INIT(MOF Compiler, 0.7.2, sblim-devel@lists.sourceforge.net,mofc)
 AC_CONFIG_SRCDIR([hash.c])
@@ -13,7 +13,7 @@ case $host_os in
 		CFLAGS=-W"c,ASCII,dll,expo,langlvl(extended),float"
 		LDFLAGS=-W"l,XPLINK,dll,EDIT=NO"
 		;;
-     **)	CFLAGS=-Wall
+     **)	CFLAGS="-Wall -fsigned-char"
 		CFLAGS="-g $CFLAGS"
 		;;
 esac
