@@ -1,3 +1,24 @@
+2005-11-20  bestorga-oss
+
+	* COPYING, backend.h, backend_print.c, backend_sfcb.c, hash.c,
+	hash.h, mofc.y, mofdecl.h, mofparse.c, mofs.l, symtab.c, symtab.h:
+	Bug: 1362805. changed all license references to new Eclipse Public license
+
+2005-09-05  mihajlov
+
+	* configure.ac: Upgraded version number to 0.7.3.
+
+2005-08-02  a3schuur
+
+	* configure.ac: Added -fsigned-char compile flag to ensure ppc gcc
+	treats char the same way as gcc on ix86
+
+2005-08-02  a3schuur
+
+	* mofparse.c: fixed [ 1250128 ] sfcbmof fails on ppc
+
+	char opt; on line 49 changed to int opt;
+
 2005-06-14    <mihajlov@dyn-9-152-143-42.boeblingen.de.ibm.com>
 
 	* mofc.y: 
