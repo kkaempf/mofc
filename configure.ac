@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.7 2005/09/05 13:38:25 mihajlov Exp $
+# $Id: configure.ac,v 1.8 2006/01/02 14:59:40 mihajlov Exp $
 
 AC_INIT(MOF Compiler, 0.7.3, sblim-devel@lists.sourceforge.net,mofc)
 AC_CONFIG_SRCDIR([hash.c])
@@ -43,7 +43,7 @@ unset MOFCNAME
 
 if test "$with_sfcb" == yes; then
    if test x"$SFCB_DIR" = x; then
-      SFCB_DIR=..
+      SFCB_DIR=$srcdir/..
    fi
    MOFCNAME=sfcbmof
    BACKEND_STRING=sfcb

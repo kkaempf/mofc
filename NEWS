@@ -2,6 +2,12 @@ Changes in 0.7.3
 ================
 
 Bugs fixed:
+- 1395350: Location dependent build problem fixed.
+
+Changes in 0.7.3
+================
+
+Bugs fixed:
 - 1220394: Coredump on char literals.
 - 1250128: Failure on PPC platform
 - 1362805: Changed License from EPM to CPL.

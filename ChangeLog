@@ -1,3 +1,8 @@
+2006-01-02    <mihajlov@dyn-9-152-143-45.boeblingen.de.ibm.com>
+
+	* configure.ac: 
+	Fixed 1395350. Evaluate $srcdir for SFCB source directory location.
+
 2005-11-20  bestorga-oss
 
 	* COPYING, backend.h, backend_print.c, backend_sfcb.c, hash.c,
