@@ -1,5 +1,5 @@
 /**
- * $Id: mofparse.c,v 1.4 2005/11/20 17:37:05 bestorga-oss Exp $
+ * $Id: mofparse.c,v 1.5 2006/01/12 17:20:04 mihajlov Exp $
  *
  * (C) Copyright IBM Corp. 2004
  * 
@@ -141,7 +141,6 @@ int main(int argc, char * argv[])
     }
   }
   if (init_scanner(argv+argidx,argc-argidx,inclpath,inclfile,opt_verbose) != 0 ) {
-    fprintf( stderr, "could not open file %s\n", argv[argidx] );
     return 2;
   }
   if ( ( yyparse() || error_occured )) {
