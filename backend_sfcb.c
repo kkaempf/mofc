@@ -1,5 +1,5 @@
 /**
- * $Id: backend_sfcb.c,v 1.5 2005/11/20 17:37:05 bestorga-oss Exp $
+ * $Id: backend_sfcb.c,v 1.6 2006/01/17 17:51:05 a3schuur Exp $
  *
  * (C) Copyright IBM Corp. 2004
  * 
@@ -40,9 +40,12 @@ extern void ClClassFreeClass(ClClass * cls);
 extern char *ClClassToString(ClClass * cls);
 extern CMPIStatus simpleArrayAdd(CMPIArray * array, CMPIValue * val, CMPIType type);
 
+extern long swapEndianClass(ClClass * cls);
+
 extern CMPIBroker *Broker;
 
 static unsigned sfcb_options = BACKEND_DEFAULT;
+static int endianMode = SFCB_LOCAL_ENDIAN;
 
 #define BACKEND_SFCB_NO_QUALIFIERS      0x0100
 #define BACKEND_SFCB_REDUCED_QUALIFIERS 0x0200
@@ -178,7 +181,16 @@ static CMPIData make_cmpi_data( type_type lextype, int arrayspec,
   return data;
 }
 
-static int sfcb_add_class(FILE * f, hashentry * he, class_entry * ce)
+static void sfcb_add_version(FILE * f, unsigned short opt, int endianMode)
+{
+   ClVersionRecord rec;
+   long size;
+   
+   rec = ClBuildVersionRecord(opt, endianMode, &size);
+   fwrite(&rec,size,1,f);
+}
+
+static int sfcb_add_class(FILE * f, hashentry * he, class_entry * ce, int endianMode)
 {
   /* SFCB related */
   ClClass * sfcbClass;
@@ -186,6 +198,7 @@ static int sfcb_add_class(FILE * f, hashentry * he, class_entry * ce)
   ClProperty * sfcbProp;
   int prop_id;
   int qual_id;
+  long size;
   /* Symtab related */
   qual_chain * quals = ce -> class_quals;
   prop_chain * props = ce -> class_props;
@@ -193,7 +206,7 @@ static int sfcb_add_class(FILE * f, hashentry * he, class_entry * ce)
 
   /* postfix processing - recursive */
   if ( ce -> class_parent) {
-    sfcb_add_class( f, he, ce -> class_parent ); 
+    sfcb_add_class( f, he, ce -> class_parent, endianMode ); 
   }
   if ( htlookup( he, 
 		 upstrdup(ce -> class_id, 
@@ -266,10 +279,16 @@ static int sfcb_add_class(FILE * f, hashentry * he, class_entry * ce)
       }
       props = props -> prop_next;
     }
+    
     sfcbClassRewritten = ClClassRebuildClass(sfcbClass,NULL);
-    /*fprintf(f,"%s",ClClassToString(sfcbClassRewritten));*/
-    fwrite(sfcbClassRewritten,sfcbClassRewritten->hdr.size,1,f);
-    ClClassFreeClass(sfcbClassRewritten);
+    size=sfcbClassRewritten->hdr.size;
+
+    if (endianMode != SFCB_LOCAL_ENDIAN)
+       swapEndianClass(sfcbClassRewritten);
+
+    fwrite(sfcbClassRewritten,size,1,f);
+    //ClClassFreeClass(sfcbClassRewritten);
+    free(sfcbClassRewritten);
   }
   return 0;
 }
@@ -279,7 +298,9 @@ int backend_sfcb(class_chain * cls_chain, const char * outfile,
 {
   hashentry * classes_done = htcreate("SFCB");
   FILE      * class_file = fopen(outfile, "w");
-  
+  short test = 1;
+  char *tp = (char*)&test;
+    
   if (class_file == NULL) {
     return 1;
   }
@@ -294,9 +315,21 @@ int backend_sfcb(class_chain * cls_chain, const char * outfile,
       fprintf(stderr,"  information: omitting selected qualifiers.\n");
     }
   }
+  
+  if (strchr(extraopts,'L')) {
+    endianMode = SFCB_LITTLE_ENDIAN;
+  }
+  if (strchr(extraopts,'B')) {
+    endianMode = SFCB_BIG_ENDIAN;
+  }
+  
+  if (tp[0]==1 && endianMode == SFCB_LITTLE_ENDIAN) endianMode=0;
+  else if (tp[1]==1 && endianMode == SFCB_BIG_ENDIAN) endianMode=0;
+   
+  sfcb_add_version(class_file, ClTypeClassRep, endianMode);
 
   while (cls_chain && cls_chain->class_item) {
-    if (sfcb_add_class(class_file, classes_done, cls_chain->class_item)) {
+    if (sfcb_add_class(class_file, classes_done, cls_chain->class_item,endianMode)) {
       return 1;
     }
     cls_chain = cls_chain -> class_next;
