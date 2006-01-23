@@ -1,5 +1,5 @@
 /**
- * $Id: backend_sfcb.c,v 1.6 2006/01/17 17:51:05 a3schuur Exp $
+ * $Id: backend_sfcb.c,v 1.7 2006/01/23 11:14:25 a3schuur Exp $
  *
  * (C) Copyright IBM Corp. 2004
  * 
@@ -25,6 +25,7 @@
 #include "mofc.h"
 #include "hash.h"
 #include "backend.h"
+#include <sys/utsname.h>
 
 
 /* Be aware that these are all entry points into SFCB's guts */
@@ -40,12 +41,16 @@ extern void ClClassFreeClass(ClClass * cls);
 extern char *ClClassToString(ClClass * cls);
 extern CMPIStatus simpleArrayAdd(CMPIArray * array, CMPIValue * val, CMPIType type);
 
-extern long swapEndianClass(ClClass * cls);
-
 extern CMPIBroker *Broker;
 
 static unsigned sfcb_options = BACKEND_DEFAULT;
 static int endianMode = SFCB_LOCAL_ENDIAN;
+
+typedef void *(*Swap)(ClClass * cls, int *size);
+static void *swapLib;
+static Swap swapEntry;
+static int swapMode=0;
+
 
 #define BACKEND_SFCB_NO_QUALIFIERS      0x0100
 #define BACKEND_SFCB_REDUCED_QUALIFIERS 0x0200
@@ -198,7 +203,7 @@ static int sfcb_add_class(FILE * f, hashentry * he, class_entry * ce, int endian
   ClProperty * sfcbProp;
   int prop_id;
   int qual_id;
-  long size;
+  int size;
   /* Symtab related */
   qual_chain * quals = ce -> class_quals;
   prop_chain * props = ce -> class_props;
@@ -283,11 +288,14 @@ static int sfcb_add_class(FILE * f, hashentry * he, class_entry * ce, int endian
     sfcbClassRewritten = ClClassRebuildClass(sfcbClass,NULL);
     size=sfcbClassRewritten->hdr.size;
 
-    if (endianMode != SFCB_LOCAL_ENDIAN)
-       swapEndianClass(sfcbClassRewritten);
-
+    if (swapMode) {
+       void *tmp=sfcbClassRewritten;
+       sfcbClassRewritten = swapEntry(sfcbClassRewritten,&size);
+       free(tmp);
+    }
+       
     fwrite(sfcbClassRewritten,size,1,f);
-    //ClClassFreeClass(sfcbClassRewritten);
+
     free(sfcbClassRewritten);
   }
   return 0;
@@ -300,6 +308,14 @@ int backend_sfcb(class_chain * cls_chain, const char * outfile,
   FILE      * class_file = fopen(outfile, "w");
   short test = 1;
   char *tp = (char*)&test;
+  struct utsname uName;
+  static int ix86=1,first=1;
+   
+  if (first) {
+     uname(&uName);
+     if (uName.machine[0]!='i' || strcmp(uName.machine+2,"86")!=0) ix86=0;
+     first=0;
+  }
     
   if (class_file == NULL) {
     return 1;
@@ -316,16 +332,35 @@ int backend_sfcb(class_chain * cls_chain, const char * outfile,
     }
   }
   
-  if (strchr(extraopts,'L')) {
-    endianMode = SFCB_LITTLE_ENDIAN;
-  }
-  if (strchr(extraopts,'B')) {
-    endianMode = SFCB_BIG_ENDIAN;
+  if (tp[0]==1) endianMode = SFCB_LITTLE_ENDIAN;
+  else if (tp[1]==1) endianMode = SFCB_BIG_ENDIAN;
+  
+  if (strstr(extraopts,"P32")) {
+    if (ix86) {
+       char libName[]="libsfcObjectImplSwapI32toP32.so";
+       char entryName[]="swapI32toP32Class";
+       char *error;
+       
+       endianMode=SFCB_BIG_ENDIAN;
+       swapLib=dlopen(libName, RTLD_LAZY);
+       if (swapLib==NULL) {
+          fprintf (stderr, "--- swap library not found - %s\n", dlerror());
+          exit(16);
+       }
+       dlerror();
+       swapEntry = dlsym(swapLib, entryName);
+       if ((error = dlerror()) != NULL)  {
+          fprintf (stderr, "--- swap library entry not found - %s\n", error);
+          exit(16);
+       }
+       swapMode=1;
+    }
+    else {
+       fprintf(stderr,"--- backend_sfcb: P32 option can only be used on ix86 class machines\n");
+       exit(16);
+    }
   }
   
-  if (tp[0]==1 && endianMode == SFCB_LITTLE_ENDIAN) endianMode=0;
-  else if (tp[1]==1 && endianMode == SFCB_BIG_ENDIAN) endianMode=0;
-   
   sfcb_add_version(class_file, ClTypeClassRep, endianMode);
 
   while (cls_chain && cls_chain->class_item) {
