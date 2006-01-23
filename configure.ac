@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.9 2006/01/17 17:51:05 a3schuur Exp $
+# $Id: configure.ac,v 1.10 2006/01/23 15:35:09 a3schuur Exp $
 
 AC_INIT(MOF Compiler, 0.7.3, sblim-devel@lists.sourceforge.net,mofc)
 AC_CONFIG_SRCDIR([hash.c])
@@ -48,7 +48,7 @@ if test "$with_sfcb" == yes; then
    MOFCNAME=sfcbmof
    BACKEND_STRING=sfcb
    BACKEND_OBJ='backend_sfcb.$(OBJEXT)'
-   BACKEND_LIBS="-L $SFCB_DIR/.libs -lsfcBrokerCore -lsfcObjectImplSwapEndian"
+   BACKEND_LIBS="-L $SFCB_DIR/.libs -lsfcBrokerCore"
    BACKEND_INCLUDES="-I $SFCB_DIR"
    AC_DEFINE(BACKEND_INFO,"SFCB Backend",[Backend Identification String])
 else
