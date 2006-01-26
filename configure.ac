@@ -1,6 +1,6 @@
-# $Id: configure.ac,v 1.10 2006/01/23 15:35:09 a3schuur Exp $
+# $id: configure.ac,v 1.10 2006/01/23 15:35:09 a3schuur Exp $
 
-AC_INIT(MOF Compiler, 0.7.3, sblim-devel@lists.sourceforge.net,mofc)
+AC_INIT(MOF Compiler, 0.7.4, sblim-devel@lists.sourceforge.net,mofc)
 AC_CONFIG_SRCDIR([hash.c])
 AC_CONFIG_HEADER([config.h])
 
@@ -8,15 +8,17 @@ AM_INIT_AUTOMAKE
 
 AC_CANONICAL_HOST
 case $host_os in
-     openedition*) CPPFLAGS=-W"c,SSCOMM" 
-		CPPFLAGS="-D_OPEN_SOURCE=3 -D_ENHANCED_ASCII_EXT=0xFFFFFFFF $CPPFLAGS"
-		CFLAGS=-W"c,ASCII,dll,expo,langlvl(extended),float"
-		LDFLAGS=-W"l,XPLINK,dll,EDIT=NO"
+     openedition*) MOFC_CPPFLAGS=-W"c,SSCOMM" 
+		MOFC_CPPFLAGS="-D_OPEN_SOURCE=3 -D_ENHANCED_ASCII_EXT=0xFFFFFFFF $MOFC_CPPFLAGS"
+		MOFC_CFLAGS=-W"c,ASCII,dll,expo,langlvl(extended),float"
+		MOFC_LDFLAGS=-W"l,XPLINK,dll,EDIT=NO"
 		;;
-     **)	CFLAGS="-Wall -fsigned-char"
-		CFLAGS="-g $CFLAGS"
+     **)	MOFC_CFLAGS="-Wall -fsigned-char"
 		;;
 esac
+AC_SUBST(MOFC_CPPFLAGS)
+AC_SUBST(MOFC_CFLAGS)
+AC_SUBST(MOFC_LDFLAGS)
 
 AC_ARG_ENABLE(relax-mofsyntax,
 	      [AC_HELP_STRING([--enable-relax-mofsyntax],
@@ -48,7 +50,8 @@ if test "$with_sfcb" == yes; then
    MOFCNAME=sfcbmof
    BACKEND_STRING=sfcb
    BACKEND_OBJ='backend_sfcb.$(OBJEXT)'
-   BACKEND_LIBS="-L $SFCB_DIR/.libs -lsfcBrokerCore"
+
+   BACKEND_LIBS="-L ../.libs -lsfcBrokerCore"
    BACKEND_INCLUDES="-I $SFCB_DIR"
    AC_DEFINE(BACKEND_INFO,"SFCB Backend",[Backend Identification String])
 else
@@ -58,13 +61,6 @@ else
    BACKEND_INCLUDES=
    AC_DEFINE(BACKEND_INFO,"Default Backend",[Backend Identification String])
 fi
-
-if test "$CFLAGS" != ""; then
-  user_cflags_set=yes
-else
-  user_cflags_set=no
-fi
-
 
 # Checks for programs.
 AC_PROG_CC
@@ -85,9 +81,9 @@ fi;
 # Checks for libraries
 if test "$with_sfcb" = yes && test x"$sfcb_recursed" = x; then
    save_LDFLAGS=$LDFLAGS
-   LDFLAGS="-L $SFCB_DIR/.libs $LDFLAGS"
+   LDFLAGS="-L $../.libs $LDFLAGS"
    AC_CHECK_LIB(sfcBrokerCore,main,,
-       [AC_MSG_ERROR([sorry, could not find SFCB libraries. Hint: set SFCB_DIR environment variable.])])
+       [AC_MSG_ERROR([sorry, could not find SFCB libraries.])])
    LDFLAGS=$save_LDFLAGS
 fi;
 

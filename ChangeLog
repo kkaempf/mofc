@@ -1,3 +1,36 @@
+2006-01-26    <mihajlov@dyn-9-152-143-45.boeblingen.de.ibm.com>
+
+	* configure.ac, Makefile.am: 
+	Fixed 1414767 vpath build failure. Made xFLAGS processing
+	more standards compliant.
+
+2006-01-23  a3schuur
+
+	* configure.ac: [ 1408327 ] sfcbmof does not support big/little
+	endian in cross-compile Fixing offset problems in P32 mode Setting
+	default alignment to 4 Updating configure.ac by removing
+	objectImplSwapEndian references
+
+2006-01-23  a3schuur
+
+	* backend_sfcb.c: [ 1408327 ] sfcbmof does not support big/little
+	endian in cross-compile Previous fix did not correctly anticipate
+	Power32 alignment rules.  objectImplSwapEndian.c has been removed
+	because totally inadequate.  objectImpiI32toP32.c has been created
+	instead. It recreates classSchemas files for Power32 systems.
+	sfcbmof now requires -b P32 to invoke the cross compile support.
+	-b P32 only works one way only: It must be executed on a ix86
+	machine and it will only generate classSchemas files for Power32.
+
+2006-01-17  a3schuur
+
+	* backend_sfcb.c, configure.ac: fix for [ 1408327 ] sfcbmof does
+	not support big/little endian in cross-compile
+
+2006-01-12  mihajlov
+
+	* mofparse.c: Minor fix for redundant error message.
+
 2006-01-02    <mihajlov@dyn-9-152-143-45.boeblingen.de.ibm.com>
 
 	* configure.ac: 

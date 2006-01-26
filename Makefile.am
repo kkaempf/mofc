@@ -1,4 +1,8 @@
-# $Id: Makefile.am,v 1.2 2005/04/01 10:48:13 mihajlov Exp $
+# $Id: Makefile.am,v 1.3 2006/01/26 14:01:47 mihajlov Exp $
+
+AM_CPPFLAGS=@MOFC_CPPFLAGS@
+AM_CFLAGS=@MOFC_CFLAGS@
+AM_LDFLAGS=@MOFC_LDFLAGS@
 
 AM_LFLAGS=-i
 AM_YFLAGS=-d
