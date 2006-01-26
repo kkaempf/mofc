@@ -1,5 +1,5 @@
 /**
- * $Id: mofparse.c,v 1.5 2006/01/12 17:20:04 mihajlov Exp $
+ * $Id: mofparse.c,v 1.6 2006/01/26 16:15:15 mihajlov Exp $
  *
  * (C) Copyright IBM Corp. 2004
  * 
@@ -38,6 +38,7 @@ static int opt_help = 0;
 static char inclpath[3000] = {0};
 static char outfile[300] = "mofc.out";
 static char backendopt[300] = {0};
+static size_t backendopt_used = 0;
 static char * inclfile = NULL;
 static char * valid_options = "b:o:I:i:hvV";
 
@@ -50,7 +51,11 @@ static int parse_options(int argc, char * argv[])
   while ((opt=getopt(argc,argv,valid_options)) != -1) {
     switch (opt) {
     case 'b': 
-      strncpy(backendopt,optarg,sizeof(backendopt));
+      backendopt_used += strlen(optarg);
+      if (backendopt_used < sizeof(backendopt) - 1 ) {
+	strcat(backendopt," ");
+	strcat(backendopt,optarg);
+      }
       break;
     case 'o': 
       strncpy(outfile,optarg,sizeof(outfile));
@@ -167,4 +172,9 @@ void yyerror( char * errstr )
          , file_name, line_number, 
 	   yylval.lval_id , 
 	   errstr);
+}
+
+int yywrap(void)
+{
+  return 1;
 }
