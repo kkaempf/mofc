@@ -1,6 +1,12 @@
 Changes in 0.7.4
 ================
 
+Enhancements:
+- allow multiple specification of backend options via -b
+
+Changes in 0.7.4
+================
+
 Bugs fixed:
 - 1395350: Location dependent build problem fixed.
 - 1414767: vpath build failure fixed.
