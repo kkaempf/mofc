@@ -1,5 +1,8 @@
 2006-01-31    <mihajlov@dyn-9-152-143-45.boeblingen.de.ibm.com>
 
+	* backend_sfcb.c:
+	Related to 1420604: adapted to cmpidt.h changes.
+
 	* mofs.l: 
 	Fixed 1420397: close include files after EOF. Added support for
 	backslash-delimited pathes.

@@ -1,5 +1,5 @@
 /**
- * $Id: backend_sfcb.c,v 1.7 2006/01/23 11:14:25 a3schuur Exp $
+ * $Id: backend_sfcb.c,v 1.8 2006/01/31 16:23:44 mihajlov Exp $
  *
  * (C) Copyright IBM Corp. 2004
  * 
@@ -138,10 +138,10 @@ static CMPIData make_cmpi_data( type_type lextype, int arrayspec,
 	sscanf(vals -> val_value, "%hd", &data.value.sint16 );
 	break;
       case CMPI_uint32:
-	sscanf(vals -> val_value, "%lu", &data.value.uint32 );
+	sscanf(vals -> val_value, "%u", &data.value.uint32 );
 	break;
       case CMPI_sint32:
-	sscanf(vals -> val_value, "%ld", &data.value.sint32 );
+	sscanf(vals -> val_value, "%d", &data.value.sint32 );
 	break;
       case CMPI_uint64:
 	sscanf(vals -> val_value, "%llu", &data.value.uint64);
