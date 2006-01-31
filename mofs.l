@@ -1,5 +1,5 @@
 /**
- * $Id: mofs.l,v 1.3 2005/11/20 17:37:05 bestorga-oss Exp $
+ * $Id: mofs.l,v 1.4 2006/01/31 11:53:42 mihajlov Exp $
  *
  * (C) Copyright IBM Corp. 2004
  * 
@@ -79,6 +79,7 @@ char * extrainclude = NULL;
 
 typedef struct file_stack_struct {
   char                     * file_name;
+  FILE                     * file_handle;
   int                        line_number;
   YY_BUFFER_STATE            yybuffer;
   struct file_stack_struct * next_file;
@@ -162,10 +163,16 @@ punctuation             [;,.:=(){}]
                           char * includeidx;
                           char * incfilename;
                           FILE * file_handle;
+                          char * bslashidx; /* ah yes */
                           includeidx = strstr(yytext,"include");
                           if ( includeidx ) {
                              incfilename = strdup(strchr(includeidx,'"')+1);
                              *strrchr(incfilename,'"') = 0;
+                             for (bslashidx=strchr(incfilename,'\\');
+                                  bslashidx; 
+                                  bslashidx=strchr(bslashidx,'\\')) {
+                               *bslashidx='/';
+                             }
                              file_handle = try_open_file( incfilename );
                              if ( file_handle ) {
                                push_file( file_handle, incfilename, 0 );
@@ -188,6 +195,9 @@ punctuation             [;,.:=(){}]
 #ifndef SCANDEBUG
                            if (current_file -> next_file ) {
                               yy_delete_buffer( YY_CURRENT_BUFFER );
+                              if (current_file -> file_handle) {
+                                 fclose(current_file -> file_handle);
+                              }
                               current_file = current_file -> next_file;
                               file_name = current_file -> file_name;
                               line_number = current_file -> line_number;
@@ -276,6 +286,7 @@ void push_file( FILE *file_handle, char * filename, int keep_symtab )
 {
   file_stack_entry * fse = 
          calloc( sizeof(file_stack_entry), 1);
+  fse -> file_handle = file_handle;
   fse -> file_name = strdup( filename );
   fse -> yybuffer = 
       yy_create_buffer( file_handle, YY_BUF_SIZE );
