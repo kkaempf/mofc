@@ -1,8 +1,11 @@
-Changes in 0.7.4
+Changes in 0.7.5
 ================
 
 Enhancements:
 - allow multiple specification of backend options via -b
+
+Bugs fixed:
+- 1420397: File handle leaks removed.
 
 Changes in 0.7.4
 ================
@@ -17,7 +20,7 @@ Changes in 0.7.3
 Bugs fixed:
 - 1220394: Coredump on char literals.
 - 1250128: Failure on PPC platform
-- 1362805: Changed License from EPM to CPL.
+- 1362805: Changed License from CPL to EPL.
 
 Changes in 0.7.2
 ================
