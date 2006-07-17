@@ -1,12 +1,8 @@
-.deps
-Makefile
-Makefile.in
 aclocal.m4
-autom4te.cache
-config.h
 config.h.in
-config.log
-config.status
 configure
-stamp-h1
-mofc
+INSTALL
+Makefile.in
+mofc.c
+mofc.h
+mofs.c
