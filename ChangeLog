@@ -1,3 +1,7 @@
+2006-07-19 sschuetz
+	* backend_sfcb.c:
+	Fixed 1525280: changed some function calls due to sfcb changes
+
 2006-01-31    <mihajlov@dyn-9-152-143-45.boeblingen.de.ibm.com>
 
 	* backend_sfcb.c:
