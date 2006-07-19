@@ -1,5 +1,5 @@
 /**
- * $Id: backend_sfcb.c,v 1.8 2006/01/31 16:23:44 mihajlov Exp $
+ * $Id: backend_sfcb.c,v 1.9 2006/07/19 14:07:39 sschuetz Exp $
  *
  * (C) Copyright IBM Corp. 2004
  * 
@@ -39,7 +39,7 @@ extern ClClass *ClClassNew(const char *cn, const char *pa);
 extern ClClass *ClClassRebuildClass(ClClass * cls, void *area);
 extern void ClClassFreeClass(ClClass * cls);
 extern char *ClClassToString(ClClass * cls);
-extern CMPIStatus simpleArrayAdd(CMPIArray * array, CMPIValue * val, CMPIType type);
+extern CMPIStatus sfcb_simpleArrayAdd(CMPIArray * array, CMPIValue * val, CMPIType type);
 
 extern CMPIBroker *Broker;
 
@@ -119,7 +119,7 @@ static CMPIData make_cmpi_data( type_type lextype, int arrayspec,
 	CMNewArray(Broker,0,data.type&~CMPI_ARRAY,NULL);
       while (vals && vals -> val_value) {
 	arr_data = make_cmpi_data(lextype,-1,vals);
-     st=simpleArrayAdd(data.value.array, &arr_data.value, data.type&~CMPI_ARRAY);
+     st=sfcb_simpleArrayAdd(data.value.array, &arr_data.value, data.type&~CMPI_ARRAY);
 	i++;
 	vals = vals -> val_next;
       }
