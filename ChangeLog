@@ -1,3 +1,9 @@
+2006-07-25  Viktor Mihajlovski  <mihajlov@dyn-9-152-143-50.boeblingen.de.ibm.com>
+
+	* configure.ac, mofc.y, symtab.c, symtab.h: 
+	Fixed 1528352: now the compiler can support forward declarations.
+	The old behaviour can be established using --enable-onepass.
+
 2006-07-19 sschuetz
 	* backend_sfcb.c:
 	Fixed 1525280: changed some function calls due to sfcb changes

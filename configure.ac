@@ -23,6 +23,9 @@ AC_SUBST(MOFC_LDFLAGS)
 AC_ARG_ENABLE(relax-mofsyntax,
 	      [AC_HELP_STRING([--enable-relax-mofsyntax],
 		              [be less strict when parsing MOFs.])])
+AC_ARG_ENABLE(onepass,
+	      [AC_HELP_STRING([--enable-onepass],
+		              [create one-pass parser, disallows forward declarations.])])
 AC_ARG_ENABLE(testscanner,
 	      [AC_HELP_STRING([--enable-testscanner],
 		              [produce a standalone scanner for testing.])])
@@ -99,6 +102,10 @@ AC_CHECK_FUNCS([strcasecmp strchr strdup strrchr strstr])
 # Defines
 if test "$enable_relax_mofsyntax" = yes; then
   AC_DEFINE(RELAXED_MOF,,[Relaxed MOF Parsing])
+fi
+
+if test "$enable_onepass" = yes; then
+  AC_DEFINE(ONEPASS,,[One-Pass Parsing])
 fi
 
 AM_CONDITIONAL(TESTSCANNER,[test "$enable_testscanner" == yes]) 

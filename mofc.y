@@ -1,5 +1,5 @@
 /**
- * $Id: mofc.y,v 1.3 2005/11/20 17:37:05 bestorga-oss Exp $
+ * $Id: mofc.y,v 1.4 2006/07/25 15:36:28 mihajlov Exp $
  *
  * (C) Copyright IBM Corp. 2004
  * 
@@ -108,7 +108,12 @@ extern class_chain  * cls_chain_current;
 %%
 
 mof : /* empty */
-    | definition_list
+| definition_list 
+  {
+#ifndef ONEPASS
+    fix_forward_decls(cls_chain_current);
+#endif
+  };
 ;
 
 definition_list : definition 

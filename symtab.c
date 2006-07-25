@@ -1,5 +1,5 @@
 /**
- * $Id: symtab.c,v 1.3 2005/11/20 17:37:05 bestorga-oss Exp $
+ * $Id: symtab.c,v 1.4 2006/07/25 15:36:28 mihajlov Exp $
  *
  * (C) Copyright IBM Corp. 2004
  * 
@@ -25,6 +25,7 @@
 # include <stdio.h>
 
 static char symerrstr[300];
+static void do_inheritance( class_entry * ce );
 
 symtab_entry * make_token( int token_value )
 {
@@ -43,6 +44,19 @@ void add_class_list(class_chain * cl_ch, class_entry * cls)
   cl_ch -> class_next = calloc( sizeof(class_entry), 1 );
   cl_ch -> class_item = cls;
 }
+
+#ifndef ONEPASS
+void fix_forward_decls(class_chain * cl_ch)
+{
+  class_chain * cl_ch_local = cl_ch;
+  while (cl_ch_local -> class_next) {
+    if (cl_ch_local -> class_item) {
+      do_inheritance(cl_ch_local -> class_item);
+    }
+    cl_ch_local = cl_ch_local -> class_next;
+  }  
+}
+#endif
 
 qual_entry * make_qualifier_definition(hashentry * he, 
 				       const char * name, 
@@ -160,52 +174,22 @@ static prop_chain * merge_properties(prop_chain * pr_ch1, prop_chain * pr_ch2)
 
 static void do_inheritance( class_entry * ce ) 
 {
-  if (ce -> class_parent) {
-    ce -> class_attr |= ce -> class_parent -> class_attr;
-    ce -> class_quals = merge_qualifiers(ce -> class_quals, 
-					 ce -> class_parent -> class_quals);
-    ce -> class_props = merge_properties(ce -> class_props, 
-					 ce -> class_parent -> class_props);
-    ce -> class_methods = merge_methods(ce -> class_methods, 
-					ce -> class_parent -> class_methods);
+  qual_chain * qu_ch = ce -> class_quals;
+  if (ce -> class_attr & CLASS_COMPLETED) {
+    return;
   }
-}
-
-class_entry * make_class( hashentry * he,
-			  qual_chain * qu_ch,
-			  const char * name, 
-			  class_entry * parent,
-			  prop_or_method_list * pom_li)
-{
-  class_entry * ce = calloc( sizeof(class_entry), 1 );
-  symtab_entry * se = calloc ( sizeof(symtab_entry ), 1 );
-  prop_chain   * props;
-  method_chain * methods;
-
-#ifndef RELAXED_MOF
-  if (strchr(name,'_') == NULL || strchr(name,'_')==(char*)name) {
-    sprintf(symerrstr,"class name %s invalid (missing schema prefix)",name);
-    yyerror(symerrstr);
+#ifndef RELAXED_MOF 
+  if (ce -> class_attr & CLASS_FORWARDDECL) {
+    ce -> class_attr &= ~CLASS_FORWARDDECL; /* reset to avoid multiple msgs */
+    sprintf(symerrstr,"class %s was referenced but never defined.",
+	      ce -> class_id);
+    yyerror(symerrstr);    
   }
 #endif
-  ce -> class_quals = qu_ch;
-  ce -> class_id = strdup(name);
-  ce -> class_parent = parent;
-  if (pom_li) { 
-    ce -> class_props = pom_li -> pom_props;
-    ce -> class_methods = pom_li -> pom_methods;
+  if (ce -> class_parent) {
+      do_inheritance(ce -> class_parent);
   }
-  props = ce -> class_props;
-  while (props) {
-    props -> prop_class = ce -> class_id;
-    props = props -> prop_next;
-  }
-  methods = ce -> class_methods;
-  while (methods) {
-    methods -> method_class = ce -> class_id;
-    methods = methods -> method_next;
-  }
-      
+  /* check for association/indication qualifiers */
   while ( qu_ch ) {
     if (strcasecmp("ASSOCIATION",qu_ch -> qual_id)==0) {
 #ifndef RELAXED_MOF
@@ -213,7 +197,7 @@ class_entry * make_class( hashentry * he,
 	  (ce -> class_parent -> class_attr & CLASS_ASSOCIATION) == 0) {
 	sprintf(symerrstr,
 		"class %s cannot be association, since parent %s is none",
-		name, ce -> class_parent -> class_id );
+		ce -> class_id , ce -> class_parent -> class_id );
 	yyerror(symerrstr);
       }
 #endif
@@ -224,7 +208,7 @@ class_entry * make_class( hashentry * he,
 	  (ce -> class_parent -> class_attr & CLASS_INDICATION) == 0) {
 	sprintf(symerrstr,
 		"class %s cannot be indication, since parent %s is none",
-		name, ce -> class_parent -> class_id );
+		ce -> class_id, ce -> class_parent -> class_id );
 	yyerror(symerrstr);
       }
 #endif
@@ -232,29 +216,96 @@ class_entry * make_class( hashentry * he,
     }
     qu_ch = qu_ch -> qual_next;
   }
-  
-  do_inheritance(ce); /* do fixups for inheritance */
-
-  se -> sym_type = SYM_CLASS;
-  se -> sym_union.sym_class = ce;
-  if (htinsert( he, upstrdup( ce -> class_id, strlen( ce -> class_id ) ), 
-		strlen( ce -> class_id ) , se )==0) {
-    sprintf(symerrstr,"redefinition of class %s attempted",name);
-    yyerror(symerrstr);
-    ce = NULL;
+  if (ce -> class_parent) {
+    ce -> class_attr |= (ce -> class_parent -> class_attr);
+    ce -> class_quals = merge_qualifiers(ce -> class_quals, 
+					 ce -> class_parent -> class_quals);
+    ce -> class_props = merge_properties(ce -> class_props, 
+					 ce -> class_parent -> class_props);
+    ce -> class_methods = merge_methods(ce -> class_methods, 
+					ce -> class_parent -> class_methods);
   }
+  ce -> class_attr |= CLASS_COMPLETED;
+}
+
+class_entry * make_class( hashentry * he,
+			  qual_chain * qu_ch,
+			  const char * name, 
+			  class_entry * parent,
+			  prop_or_method_list * pom_li)
+{
+  class_entry * ce = NULL;
+  prop_chain   * props;
+  method_chain * methods;
+
+#ifndef RELAXED_MOF
+  if (strchr(name,'_') == NULL || strchr(name,'_')==(char*)name) {
+    sprintf(symerrstr,"class name %s invalid (missing schema prefix)",name);
+    yyerror(symerrstr);
+  }
+#endif
+  ce = get_class_def(he,name);
+  if (ce) { 
+    if (ce -> class_attr & CLASS_FORWARDDECL) {
+      /* remove forward declaration flag as we are defining the class */
+      ce -> class_attr &= ~CLASS_FORWARDDECL;
+    } else {
+      sprintf(symerrstr,"redefinition of class %s attempted",name);
+      yyerror(symerrstr);
+      return NULL;
+    }
+    /* complete class definition */
+    ce -> class_quals = qu_ch;
+    ce -> class_parent = parent;
+    if (pom_li) { 
+      ce -> class_props = pom_li -> pom_props;
+      ce -> class_methods = pom_li -> pom_methods;
+    }
+    props = ce -> class_props;
+    while (props) {
+      props -> prop_class = ce -> class_id;
+      props = props -> prop_next;
+    }
+    methods = ce -> class_methods;
+    while (methods) {
+      methods -> method_class = ce -> class_id;
+      methods = methods -> method_next;
+    }
+    
+  }
+#ifdef ONEPASS
+  do_inheritance(ce);
+#endif
   return ce;
 }
 
 class_entry * get_class_def( hashentry * he, const char * name )
 {
-  symtab_entry * se = htlookup( he, upstrdup(name,strlen(name)), strlen(name) );
-  if ( se && se -> sym_type == SYM_CLASS ) {
-    return se -> sym_union.sym_class;
+  symtab_entry * se = htlookup(he, upstrdup(name,strlen(name)), strlen(name));
+  class_entry * ce = NULL;
+  if ( se ) {
+    if ( se -> sym_type == SYM_CLASS ) {
+      ce = se -> sym_union.sym_class;
+    } else {
+     sprintf(symerrstr,"%s is not a valid class name",name);
+     yyerror(symerrstr);
+    }
+  } else {
+      /* -- we support forward decls now - enter into hashtable !*/
+    se = calloc( sizeof(symtab_entry),1 );
+    ce = calloc( sizeof(class_entry),1 );
+    ce -> class_id = strdup(name);
+    ce -> class_attr = CLASS_FORWARDDECL;
+    se -> sym_type = SYM_CLASS;
+    se -> sym_union.sym_class = ce;
+    if (htinsert( he, upstrdup( ce -> class_id, strlen( ce -> class_id ) ), 
+		  strlen( ce -> class_id ) , se )==0) {
+      sprintf(symerrstr,"internal error adding class %s to symbol table",name);
+      yyerror(symerrstr);
+      ce = NULL;
+    }  
   }
-  sprintf(symerrstr,"%s is not a known class",name);
-  yyerror(symerrstr);
-  return NULL;
+  return ce;
 }
 
 type_type make_ref_type( hashentry * he, const char * name )

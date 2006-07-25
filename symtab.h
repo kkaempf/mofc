@@ -1,5 +1,5 @@
 /**
- * $Id: symtab.h,v 1.3 2005/11/20 17:37:05 bestorga-oss Exp $
+ * $Id: symtab.h,v 1.4 2006/07/25 15:36:28 mihajlov Exp $
  *
  * (C) Copyright IBM Corp. 2004
  * 
@@ -22,8 +22,14 @@
 
 # include <hash.h>
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #define CLASS_ASSOCIATION 0x0001
 #define CLASS_INDICATION  0x0002
+#define CLASS_FORWARDDECL 0x0100
+#define CLASS_COMPLETED   0x0200
 
 #define PROPERTY_KEY      0x0001
 
@@ -122,6 +128,11 @@ typedef struct symtab_struct {
 
 symtab_entry * make_token( int token_value );
 void add_class_list(class_chain * cl_ch, class_entry * cls);
+
+#ifndef ONEPASS
+void fix_forward_decls(class_chain * cl_ch);
+#endif
+
 class_entry * make_class(hashentry * he, 
 			 qual_chain * qu_ch,
 			 const char * name, 
