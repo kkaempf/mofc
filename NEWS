@@ -7,6 +7,7 @@ Enhancements:
 Bugs fixed:
 - 1420397: File handle leaks removed.
 - 1528352: Support for forward declarations.
+- 1532423: Support for class upgrades
 
 Changes in 0.7.4
 ================

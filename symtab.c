@@ -1,5 +1,5 @@
 /**
- * $Id: symtab.c,v 1.4 2006/07/25 15:36:28 mihajlov Exp $
+ * $Id: symtab.c,v 1.5 2006/08/23 11:52:14 mihajlov Exp $
  *
  * (C) Copyright IBM Corp. 2004
  * 
@@ -228,6 +228,71 @@ static void do_inheritance( class_entry * ce )
   ce -> class_attr |= CLASS_COMPLETED;
 }
 
+static char * get_version_qual(qual_chain * qc)
+{
+  qual_chain * qc_help = qc;
+  while (qc_help) {
+    if (strcasecmp(qc_help->qual_id,"version") == 0) {
+      return qc_help->qual_vals->val_value;
+    }
+  }
+  return NULL;
+}
+
+static int version_cmp(const char * v1, const char *v2)
+{
+  char * v1_cp, * v1_pt, * v1_fcp;
+  char * v2_cp, * v2_pt, * v2_fcp;
+  int  v1_num, v2_num;
+  int result = 0;
+
+  v1_fcp = v1_cp = v1 ? strdup(v1) : NULL;
+  v2_fcp = v2_cp = v2 ? strdup(v2) : NULL;
+  do {
+    if (v1_cp) {
+      if (v2_cp) {
+	v1_pt = strchr(v1_cp,'.');
+	v2_pt = strchr(v2_cp,'.');
+	if (v1_pt) {
+	  *v1_pt = '\0';
+	  v1_num = atoi(v1_cp);
+	  v1_cp = v1_pt + 1;
+	} else {
+	  v1_num = atoi(v1_cp);
+	  v1_cp = NULL;
+	}
+	if (v2_pt) {
+	  *v2_pt = '\0';
+	  v2_num = atoi(v2_cp);
+	  v2_cp = v2_pt + 1;
+	} else {
+	  v2_num = atoi(v2_cp);
+	  v2_cp = NULL;
+	}
+	if (v1_num > v2_num) {
+	  result = 1;
+	  break;
+	}
+	if (v1_num < v2_num) {
+	  result = -1;
+	  break;
+	};
+      } else {
+	/* v2_cp NULL , v1 > v2 */
+	result = 1;
+	break;
+      }
+    } else if (v2_cp) {
+      /*  v1_cp NULL , v1 < v2 */
+      result = -1;
+      break;
+    }
+  } while (v1_cp || v2_cp);
+  free(v1_fcp);
+  free(v2_fcp);
+  return result;
+}
+
 class_entry * make_class( hashentry * he,
 			  qual_chain * qu_ch,
 			  const char * name, 
@@ -237,6 +302,8 @@ class_entry * make_class( hashentry * he,
   class_entry * ce = NULL;
   prop_chain   * props;
   method_chain * methods;
+  char         * version_this;
+  char         * version_symtab;
 
 #ifndef RELAXED_MOF
   if (strchr(name,'_') == NULL || strchr(name,'_')==(char*)name) {
@@ -250,9 +317,19 @@ class_entry * make_class( hashentry * he,
       /* remove forward declaration flag as we are defining the class */
       ce -> class_attr &= ~CLASS_FORWARDDECL;
     } else {
-      sprintf(symerrstr,"redefinition of class %s attempted",name);
-      yyerror(symerrstr);
-      return NULL;
+      /* code for upgrade check */
+      version_symtab = get_version_qual(ce -> class_quals);
+      version_this = get_version_qual(qu_ch);
+      if (version_symtab && version_this) {
+	if (version_cmp(version_symtab,version_this) >= 0) {
+	  /* we found newer/same class version in symtab, keep it */
+	  return ce;
+	}
+      } else {
+	sprintf(symerrstr,"redefinition of class %s attempted (version qualifier missing)",name);
+	yyerror(symerrstr);
+	return NULL;
+      }
     }
     /* complete class definition */
     ce -> class_quals = qu_ch;
