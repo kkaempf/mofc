@@ -1,8 +1,8 @@
+mofs.c
 aclocal.m4
 config.h.in
-configure
-INSTALL
 Makefile.in
+configure
 mofc.c
+INSTALL
 mofc.h
-mofs.c
