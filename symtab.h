@@ -1,5 +1,5 @@
 /**
- * $Id: symtab.h,v 1.4 2006/07/25 15:36:28 mihajlov Exp $
+ * $Id: symtab.h,v 1.5 2006/10/27 13:14:21 sschuetz Exp $
  *
  * (C) Copyright IBM Corp. 2004
  * 
@@ -36,6 +36,22 @@
 #define PARAMETER_IN      0x0001
 #define PARAMETER_OUT     0x0002
 
+//Qualifier Flavor
+#define Qual_F_DisableOverride  1 //default is Overriddable,different default than objectImpl
+#define Qual_F_Restricted       2 //default is ToSubclass,different default than objectImpl
+#define Qual_F_ToInstance       4 //deprecated
+#define Qual_F_Translatable     8 //default is no
+
+//Qualifier Scope
+#define Qual_S_Class         1
+#define Qual_S_Association   2
+#define Qual_S_Reference     4
+#define Qual_S_Property      8
+#define Qual_S_Method       16
+#define Qual_S_Parameter    32
+#define Qual_S_Indication   64
+#define Qual_S_Any         255
+
 extern void yyerror( char * );  /* introduce YACC error function */
 
 typedef struct class_struct class_entry;
@@ -55,10 +71,17 @@ typedef struct value_struct {
   struct value_struct * val_next;   /* link pointer */
 } value_chain;
 
+typedef struct qual_quals_struct {
+  unsigned char scope;
+  unsigned char flavor;
+} qual_quals;
+
 typedef struct qual_def_struct {
+  char                * qual_id;
   type_type             qual_type;
   int                   qual_array;
   value_chain         * qual_defval;
+  qual_quals			qual_attrs; //scope&flavor
 } qual_entry;
 
 typedef struct qual_struct {
@@ -128,6 +151,8 @@ typedef struct symtab_struct {
 
 symtab_entry * make_token( int token_value );
 void add_class_list(class_chain * cl_ch, class_entry * cls);
+void add_qual_list(qual_chain * qu_ch, qual_entry * q);
+class_entry * get_class_from_list(class_chain * cl_ch, char * name);
 
 #ifndef ONEPASS
 void fix_forward_decls(class_chain * cl_ch);
@@ -143,7 +168,8 @@ qual_entry * make_qualifier_definition(hashentry * he,
 				       const char * name, 
 				       type_type typeid,
 				       char * arrayspec,
-				       value_chain * pr_ch);
+				       value_chain * pr_ch,
+				       qual_quals sf);
 type_type make_ref_type( hashentry * he, const char * name );
 qual_chain * make_qualifier(hashentry * he, 
 			    const char * name, 
@@ -181,5 +207,16 @@ param_chain * make_param_list(qual_chain * qu_ch,
 			      const char * arrayspec
 			      );
 void param_list_add(param_chain * pa_ch1, param_chain * pa_ch2);
+class_entry * make_instance(hashentry * he, 
+			 qual_chain * qu_ch,
+			 const char * name, 
+			 void * erstmalNix, //TODO
+			 prop_or_method_list * pom_li);
+prop_chain * check_for_prop(class_entry * e, char * prop_id);
+int check_for_keys(class_entry * ce, class_entry * ie);
+class_entry * get_class_def_for_instance(class_entry * ie);
+int check_valid_props(class_entry * ce, class_entry * ie);
+int make_scope(char * scopeVal);
+int make_flavor(char * flavorVal);
 
 # endif

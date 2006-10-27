@@ -1,5 +1,5 @@
 /**
- * $Id: backend_sfcb.c,v 1.9 2006/07/19 14:07:39 sschuetz Exp $
+ * $Id: backend_sfcb.c,v 1.10 2006/10/27 13:14:21 sschuetz Exp $
  *
  * (C) Copyright IBM Corp. 2004
  * 
@@ -19,7 +19,9 @@
  *
  */
 
+#include "cmpidt.h"
 #include "objectImpl.h"
+#include "fileRepository.h"
 #include "mofdecl.h"
 #include "symtab.h"
 #include "mofc.h"
@@ -51,6 +53,7 @@ static void *swapLib;
 static Swap swapEntry;
 static int swapMode=0;
 
+extern  char * repfn; //in fileRepository - rep location
 
 #define BACKEND_SFCB_NO_QUALIFIERS      0x0100
 #define BACKEND_SFCB_REDUCED_QUALIFIERS 0x0200
@@ -301,15 +304,134 @@ static int sfcb_add_class(FILE * f, hashentry * he, class_entry * ce, int endian
   return 0;
 }
 
-int backend_sfcb(class_chain * cls_chain, const char * outfile, 
-		 unsigned options, const char * extraopts)
+CMPIObjectPath * mofc_getObjectPath(class_entry * ce, class_entry * ie, const char * ns)
+{
+	prop_chain * classprop = ce->class_props;
+	prop_chain * tempprop = NULL;
+	CMPIObjectPath *path;
+	CMPIData data;
+	
+	path = NewCMPIObjectPath(ns, ie->class_id, NULL);
+	
+	while(classprop) {
+		if(classprop->prop_attr & PROPERTY_KEY) { //found key - see if it's defined in the instance
+			
+			tempprop = check_for_prop(ie, classprop->prop_id);
+			if (tempprop) {
+				data = make_cmpi_data(classprop->prop_type, classprop->prop_array, tempprop->prop_value);
+				path->ft->addKey(path, tempprop->prop_id, &data.value, data.type);
+			} else {
+				//should not happen since keys have been checked before
+				fprintf(stderr,"  not all keys defined for %s\n", ce->class_id);				
+			}
+		}
+		classprop = classprop->prop_next;
+	}
+	return path;
+}
+
+int sfcb_add_qualifier(qual_entry * q, const char * ns)
+{
+	ClQualifierDeclaration * qual, * qualRewritten;
+	CMPIQualifierDecl * cmpi_qual = malloc(sizeof(CMPIQualifierDecl));
+	void * blob;
+	int len;
+	CMPIData d;
+	
+	qual = ClQualifierDeclarationNew(ns, q->qual_id);
+	qual->type = make_cmpi_type(q->qual_type, q->qual_array);
+	d = make_cmpi_data(q->qual_type, q->qual_array, q->qual_defval);
+	ClQualifierAddQualifier(&qual->hdr, &qual->qualifierData, q->qual_id, d);
+	
+	//negate the 2 to match obejctImpl's representation
+	if(q->qual_attrs.flavor & Qual_F_DisableOverride)
+		q->qual_attrs.flavor &= ~ Qual_F_DisableOverride;
+	else
+		q->qual_attrs.flavor |= Qual_F_DisableOverride;
+	if(q->qual_attrs.flavor & Qual_F_Restricted)
+		q->qual_attrs.flavor &= ~ Qual_F_Restricted;
+	else
+		q->qual_attrs.flavor |= Qual_F_Restricted;
+		
+	qual->flavor = q->qual_attrs.flavor;
+	qual->scope = q->qual_attrs.scope;
+	
+	qualRewritten = ClQualifierRebuildQualifier(qual, NULL);
+	cmpi_qual->hdl=qualRewritten;
+ 	len=getQualifierSerializedSize(cmpi_qual);
+ 	blob=malloc(len+64);
+	getSerializedQualifier(cmpi_qual,blob);
+
+	if (addBlob((char*)ns, "qualifiers", q->qual_id, blob,(int)len)) {
+		fprintf(stderr,"could not write qualifier %s\n",q->qual_id);
+		return 1;
+	}
+	free(blob);		
+	return 0;
+}
+
+int sfcb_add_instance(class_entry * ie, const char * ns)
+{	
+	void * blob;
+	int len;
+	CMPIData data;
+	class_entry * ce; //class definition for ie
+	CMPIObjectPath * path;
+	ClInstance * inst, * instReWritten;
+	CMPIInstance* cmpi_instance = malloc(sizeof(CMPIInstance));
+	prop_chain * class_prop;
+	prop_chain * inst_props = ie -> class_props;
+	
+	ce = get_class_def_for_instance(ie);
+
+	path = mofc_getObjectPath(ce, ie, ns);
+	inst = ClInstanceNew(ns, ie->class_id);
+
+    while (inst_props) {
+		if (sfcb_options & BACKEND_VERBOSE) {
+			fprintf(stderr,"  adding property %s for instance %s \n", 
+			inst_props -> prop_id, ie -> class_id );
+		}
+		class_prop = check_for_prop(ce, inst_props->prop_id);
+		data = make_cmpi_data(class_prop->prop_type, class_prop->prop_array, inst_props->prop_value);
+		ClInstanceAddProperty(inst, inst_props->prop_id, data);
+		inst_props = inst_props->prop_next;
+    }
+
+	instReWritten = ClInstanceRebuild(inst, NULL);	
+	cmpi_instance->hdl=instReWritten;
+
+ 	len=getInstanceSerializedSize(cmpi_instance);
+ 	blob=malloc(len+64);
+	getSerializedInstance(cmpi_instance,blob);
+
+	if (addBlob((char*)ns,ie->class_id,normalizeObjectPath(path),blob,(int)len)) {
+		fprintf(stderr,"could not write instance for class definition %s\n",ie->class_id);
+		return 1;
+	}
+	free(blob);
+	return 0;
+}
+
+int backend_sfcb(class_chain * cls_chain, class_chain * inst_chain, qual_chain * qual_chain,
+			const char * outfile, const char * outdir,
+			const char * ns, unsigned options, const char * extraopts)
 {
   hashentry * classes_done = htcreate("SFCB");
-  FILE      * class_file = fopen(outfile, "w");
   short test = 1;
   char *tp = (char*)&test;
   struct utsname uName;
   static int ix86=1,first=1;
+  FILE      * class_file = NULL;// = fopen(outfile, "w");
+  
+  if(cls_chain && cls_chain->class_item) {
+  	class_file = fopen(outfile, "w");
+  }
+ 
+  if(outdir)
+  	repfn = strdup(outdir);
+  else
+  	repfn = strdup("./");
    
   if (first) {
      uname(&uName);
@@ -317,9 +439,9 @@ int backend_sfcb(class_chain * cls_chain, const char * outfile,
      first=0;
   }
     
-  if (class_file == NULL) {
+  /*if (class_file == NULL) {
     return 1;
-  }
+  }*/
   sfcb_options = options;
   
   if (strchr(extraopts,'Q')) {
@@ -361,7 +483,8 @@ int backend_sfcb(class_chain * cls_chain, const char * outfile,
     }
   }
   
-  sfcb_add_version(class_file, ClTypeClassRep, endianMode);
+  if(class_file)
+  	sfcb_add_version(class_file, ClTypeClassRep, endianMode);
 
   while (cls_chain && cls_chain->class_item) {
     if (sfcb_add_class(class_file, classes_done, cls_chain->class_item,endianMode)) {
@@ -369,8 +492,20 @@ int backend_sfcb(class_chain * cls_chain, const char * outfile,
     }
     cls_chain = cls_chain -> class_next;
   }
+  while (inst_chain && inst_chain->class_item) {
+  	if (sfcb_add_instance(inst_chain->class_item, ns)) {
+  	  return 1;
+  	}
+    inst_chain = inst_chain -> class_next;
+  }
+  while (qual_chain && qual_chain->qual_qual) {
+  	if(sfcb_add_qualifier(qual_chain->qual_qual, ns)) {
+  		return 1;
+  	}
+    qual_chain = qual_chain -> qual_next;
+  }
   
-  fclose(class_file);
+  if(class_file) fclose(class_file);
   return 0;
 }
 

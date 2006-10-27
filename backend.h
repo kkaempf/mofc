@@ -1,5 +1,5 @@
 /**
- * $Id: backend.h,v 1.2 2005/11/20 17:37:05 bestorga-oss Exp $
+ * $Id: backend.h,v 1.3 2006/10/27 13:14:21 sschuetz Exp $
  *
  * (C) Copyright IBM Corp. 2004
  * 
@@ -25,6 +25,8 @@
 #define BACKEND_DEFAULT   0x0000
 #define BACKEND_VERBOSE   0x0001
 
-typedef int (backend_type) (class_chain * cls_chain, const char * outfile, unsigned options, const char * extraopts);
+typedef int (backend_type) (class_chain * cls_chain, class_chain * inst_chain, qual_chain * qual_chain,
+							const char * outfile, const char * outdir, const char * ns,
+							unsigned options, const char * extraopts);
 
 #endif

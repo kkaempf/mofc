@@ -1,5 +1,5 @@
 /**
- * $Id: mofs.l,v 1.4 2006/01/31 11:53:42 mihajlov Exp $
+ * $Id: mofs.l,v 1.5 2006/10/27 13:14:21 sschuetz Exp $
  *
  * (C) Copyright IBM Corp. 2004
  * 
@@ -64,6 +64,8 @@
 #   define YYDISPLAY(t,x)
 #   include "mofc.h"    /* get token id's */
 class_chain * cls_chain_current;
+class_chain * inst_chain_current;
+qual_chain * qual_chain_current;
 # endif
 
 int line_number = 1;
@@ -249,8 +251,13 @@ int init_scanner(char * parsefiles[], int numfiles, const char * includedir,
   htinsert( global_table, "TRUE", 4, make_token(BoolLiteral)) ;
   htinsert( global_table, "FALSE", 5, make_token(BoolLiteral)) ;
   htinsert( global_table, "NULL", 4, make_token(NullLiteral)) ;
+  htinsert( global_table, "SCOPE", 5, make_token(SCOPE));      
+  htinsert( global_table, "FLAVOR", 6, make_token(FLAVOR));        
+
 #ifndef SCANDEBUG
   cls_chain_current = calloc(sizeof(class_chain),1);
+  inst_chain_current = calloc(sizeof(class_chain),1);
+  qual_chain_current = calloc(sizeof(qual_chain),1);  
   current_file = NULL;
   for (i=numfiles-1; i >=0; i--) {
     file_handle = fopen(parsefiles[i],"r");

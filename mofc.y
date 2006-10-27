@@ -1,5 +1,5 @@
 /**
- * $Id: mofc.y,v 1.4 2006/07/25 15:36:28 mihajlov Exp $
+ * $Id: mofc.y,v 1.5 2006/10/27 13:14:21 sschuetz Exp $
  *
  * (C) Copyright IBM Corp. 2004
  * 
@@ -29,6 +29,8 @@
 # include "symtab.h"
 
 extern class_chain  * cls_chain_current;
+extern class_chain  * inst_chain_current;
+extern qual_chain  * qual_chain_current;
 
 %}
 
@@ -44,8 +46,11 @@ extern class_chain  * cls_chain_current;
         class_entry         * lval_class;
         prop_or_method_list * lval_props;
         qual_chain          * lval_quals;
+        qual_entry          * lval_qual;
         value_chain         * lval_vals;
         param_chain         * lval_params;
+        int                   lval_int;
+        qual_quals			  lval_qual_quals;
         }
 
 /*
@@ -74,30 +79,41 @@ extern class_chain  * cls_chain_current;
 %token <lval_literal> BoolLiteral
 %token <lval_literal> NullLiteral
 %token AS
-%token CLASS
+%token <lval_id> CLASS
 %token INSTANCE
 %token OF
 %token QUALIFIER
 %token REF
+%token FLAVOR
+%token SCOPE
 
 /*
  * nonterminal types
  */
 
 %type <lval_class> class_definition
+%type <lval_class> instance_definition
 %type <lval_class> opt_superclass
 %type <lval_props> opt_property_or_method_definitionlist
 %type <lval_props> property_or_method_definitionlist
 %type <lval_props> property_or_method_definition
+%type <lval_props> opt_property_initializer_list
+%type <lval_props> property_initializer_list
+%type <lval_props> property_initializer
 %type <lval_quals> opt_qualifier_list
 %type <lval_quals> qualifier_list
 %type <lval_quals> qualifier
+%type <lval_qual>  qualifier_definition
 %type <lval_params> opt_parameter_list parameter_list parameter
 %type <lval_literal> opt_base_literal base_literal string_literal_list
 %type <lval_literal> opt_array_spec 
 %type <lval_vals> opt_qualifier_initializer opt_literal_list literal_list
 %type <lval_vals> opt_initializer initial_value
 %type <lval_type> full_type base_type
+%type <lval_int> flavor_list
+%type <lval_int> scope_list
+%type <lval_id> ext_identifier
+%type <lval_qual_quals> opt_qualifier_extension_list
 
 /*
  * precedence ?
@@ -121,50 +137,76 @@ definition_list : definition
 ;
 
 definition : qualifier_definition
+             {
+               add_qual_list(qual_chain_current,$1);
+             }
            | class_definition 
              {
                add_class_list(cls_chain_current,$1);
              }  
            | instance_definition
+             {
+               add_class_list(inst_chain_current,$1);
+             }
 ;
 
 /*
- * qualifier definitions -- don't care for now
+ * qualifier definitions
  */
 
 qualifier_definition : QUALIFIER  Identifier ':' 
                        base_type opt_array_spec opt_initializer
                        opt_qualifier_extension_list ';'
-                       { 
-                         make_qualifier_definition(current_qualtab, $2, $4, 
-                                                   $5,$6);
+                       {
+                         $$ = make_qualifier_definition(current_qualtab, $2, $4,
+                                                   $5,$6,$7);
                        }
 ;
 
 opt_qualifier_extension_list : /* empty */
-                             | ',' qualifier_extension_list
+							 {
+                             	$$.scope = 0;
+                             	$$.flavor = 0;                             	
+							 }
+                             | ',' SCOPE '(' scope_list ')'
+                             {
+                             	$$.scope = $4;
+                             	$$.flavor = 0;
+                             }
+                             | ',' FLAVOR '(' flavor_list ')'
+                             {
+                             	$$.scope = 0;
+                             	$$.flavor = $4;                             
+                             }
+                             | ',' SCOPE '(' scope_list ')' ',' FLAVOR '(' flavor_list ')'
+                             {
+                             	$$.scope = $4;
+                             	$$.flavor = $9;                       	
+                             }
+;
+			
+scope_list : ext_identifier
+			{
+				$$=make_scope($1);
+			}
+			| scope_list ',' ext_identifier
+			{
+				$$|=make_scope($3);			
+			}
 ;
 
-qualifier_extension_list : qualifier_extension 
-                         | qualifier_extension_list ',' 
-                           qualifier_extension 
-;
-
-qualifier_extension : Identifier opt_ext_identifier_list 
-;
-
-opt_ext_identifier_list : /* empty */
-                    | '(' ext_identifier_list ')'
-;
-
-ext_identifier_list : /* empty */
-                    | ext_identifier
-                    | ext_identifier_list ',' ext_identifier
+flavor_list: ext_identifier
+			{
+				$$=make_flavor($1);
+			}
+		    | flavor_list ',' ext_identifier
+			{
+				$$|=make_flavor($3);
+			}
 ;
 
 ext_identifier : Identifier
                | CLASS
-               | INSTANCE
 ;
 
 /*
@@ -182,6 +224,10 @@ instance_definition : opt_qualifier_list INSTANCE OF Identifier opt_alias
                    '{'
                         opt_property_initializer_list
                    '}' ';'
+                   {
+                   	 $$ = make_instance(current_symtab,$1,$4,NULL,$7);
+                   	 add_class_list(cls_chain_current,get_class_def(current_symtab,$4));
+                   }
 ;
 
 opt_qualifier_list : /* empty */            {$$=NULL;}
@@ -299,13 +345,25 @@ opt_alias : /* empty */
           | AS Identifier
 ;
 
-opt_property_initializer_list : /* empty */
+opt_property_initializer_list : /* empty */ {$$=NULL;}
                               | property_initializer_list
+							{
+								$$=$1;
+							}
 ;
 
 property_initializer_list : property_initializer
+						{
+							$$=$1;
+						}
                           | property_initializer_list property_initializer
+						{
+							pom_list_add($1,$2);
+						}
 ;
 
 property_initializer : Identifier opt_initializer ';'
+						{
+							$$=make_pom_list(NULL,(type_type)0,$1,NULL,NULL,$2);
+						}
 ;

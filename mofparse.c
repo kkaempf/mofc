@@ -1,5 +1,5 @@
 /**
- * $Id: mofparse.c,v 1.6 2006/01/26 16:15:15 mihajlov Exp $
+ * $Id: mofparse.c,v 1.7 2006/10/27 13:14:21 sschuetz Exp $
  *
  * (C) Copyright IBM Corp. 2004
  * 
@@ -23,6 +23,7 @@
 #include <hash.h>
 #include <symtab.h>
 #include <mofdecl.h>
+#include <sys/stat.h>
 #include "mofc.h"
 #include "backend.h"
 #ifdef HAVE_CONFIG_H
@@ -37,12 +38,17 @@ static int opt_version = 0;
 static int opt_help = 0;
 static char inclpath[3000] = {0};
 static char outfile[300] = "mofc.out";
+static char outdir[3000] = {0};
+static char prefix[3000] = {0};
 static char backendopt[300] = {0};
+static char namespace[600] = {0};
 static size_t backendopt_used = 0;
 static char * inclfile = NULL;
-static char * valid_options = "b:o:I:i:hvV";
+static char * valid_options = "b:o:I:i:d:n:hvV";
 
 extern class_chain  * cls_chain_current;
+extern class_chain  * inst_chain_current;
+extern qual_chain   * qual_chain_current;
 extern backend_type * backend_ptr;
 
 static int parse_options(int argc, char * argv[])
@@ -60,6 +66,13 @@ static int parse_options(int argc, char * argv[])
     case 'o': 
       strncpy(outfile,optarg,sizeof(outfile));
       break;
+    case 'n': 
+      strncpy(namespace,optarg,sizeof(outfile));
+      break;      
+    case 'd': 
+      strncpy(outdir,optarg,sizeof(outdir));
+      mkdir(outdir, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+      break;      
     case 'v': 
       opt_verbose = 1;
       break;
@@ -87,7 +100,8 @@ static int parse_options(int argc, char * argv[])
 
 static void usage(const char * name)
 {
-  fprintf(stderr,"usage: %s [-hvV] [-I includepath ...] [-i extrafile] [-o outfile] [-b backendopts] filename ... \n",name);
+  fprintf(stderr,"usage: %s [-hvV] [-I includepath ...] [-i extrafile] [-o outfile] \
+[-b backendopts] [-d outputdirectory] [-n namespace] filename ... \n",name);
 }
 
 static void version()
@@ -105,8 +119,10 @@ static void help(const char * name)
   printf("  -V             print version information\n");
   printf("  -I includepath directory to search for include files\n");
   printf("  -i extrafile   file to load before parsing\n");
-  printf("  -o outfile     output file to generate (default: mofc.out)\n");
+  printf("  -o outfile     class schema output file to generate (default: mofc.out)\n");
   printf("  -b backendopts backend options, see backend documentation\n");
+  printf("  -d output directory (recommended when parsing qualifiers and instances, as this creates more than one file)\n");
+  printf("  -n target namespace, only needed for instances and qualifiers\n");
 }
 
 static int error_occured = 0;
@@ -145,6 +161,32 @@ int main(int argc, char * argv[])
       printf("  extra MOF file=%s\n",inclfile);
     }
   }
+  if(*outdir) {
+  	strcat(prefix, outdir);
+  	strcat(prefix, "/");
+  	
+  	//append "/", otherwise the filerep won't work if it's not there
+  	strcat(outdir, "/");
+  }
+  if(*namespace) {
+  	strcat(prefix, namespace);
+  	strcat(prefix, "/");
+  }
+  if(*prefix) {
+  	int offset = -1;
+  	char localpath[600];
+  	char * pos;
+	while((pos = strchr(prefix + offset + 1, '/'))) {
+		offset = pos - prefix;
+		memcpy(localpath, prefix, offset);
+		localpath[offset] = 0;
+		mkdir(localpath, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+	}
+	mkdir(prefix, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+	
+	strcat(prefix, outfile);
+  }
+  
   if (init_scanner(argv+argidx,argc-argidx,inclpath,inclfile,opt_verbose) != 0 ) {
     return 2;
   }
@@ -155,7 +197,7 @@ int main(int argc, char * argv[])
     stop_scanner();
     return 3;
   }
-  if (backend_ptr(cls_chain_current, outfile, 
+  if (backend_ptr(cls_chain_current, inst_chain_current, qual_chain_current, prefix, outdir, namespace,  
 		  opt_verbose ? BACKEND_VERBOSE : BACKEND_DEFAULT,
 		  backendopt) ) {
     fprintf( stderr, "backend error has occured writing %s\n", outfile );

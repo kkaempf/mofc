@@ -1,5 +1,5 @@
 /**
- * $Id: backend_print.c,v 1.2 2005/11/20 17:37:05 bestorga-oss Exp $
+ * $Id: backend_print.c,v 1.3 2006/10/27 13:14:21 sschuetz Exp $
  *
  * (C) Copyright IBM Corp. 2004
  * 
@@ -20,8 +20,10 @@
  */
 
 #include "backend.h"
+#include "symtab.h"
+#include "mofdecl.h" 
 #include <stdio.h>
-
+#include <string.h>
 
 static void print_value(FILE * f, value_chain * va_ch)
 {
@@ -118,8 +120,47 @@ static void print_class_attrs(FILE * f,class_entry * ce)
   }
 }
 
+static void print_instance(const char * outdir, const char * ns, class_entry * ie)
+{
+	FILE * f;
+	char outfile[3000];
+	
+	strcpy(outfile, outdir);
+	strcat(outfile, "/");
+	strcat(outfile, ns);
+	strcat(outfile, "/");	
+	strcat(outfile, ie->class_id);
+	
+	f = fopen(outfile, "a");
+
+	class_entry * ce = get_class_def_for_instance(ie);
+
+	if(check_for_keys(ce, ie) && check_valid_props(ce, ie)) {
+		
+		fprintf(f,"Instance %s ",ie -> class_id);
+		fprintf(f,"{\n");
+		print_property_chain(f,ie -> class_props);
+		fprintf(f,"}\n");
+		fprintf(f,"\n");
+	}
+}
+
+static void print_qualifier(FILE * f, qual_entry * q)
+{		
+	fprintf(f,"Qualifier %s ",q -> qual_id);
+	fprintf(f,"{\n");
+	print_value(f,q -> qual_defval);
+	fprintf(f, "\tisArray: %d\t type: %d\n", q->qual_array, q->qual_type.type_base);
+	fprintf(f,"}\n");
+	fprintf(f,"\n");			
+}
+
 static void print_class(FILE * f,class_entry * ce)
 {
+  /* postfix processing - recursive */
+  if ( ce -> class_parent) {
+    print_class( f, ce -> class_parent); 
+  }	
   fprintf(f,"Class %s ",ce -> class_id);
   print_class_attrs(f,ce);
   print_parent_chain(f,ce);
@@ -130,20 +171,42 @@ static void print_class(FILE * f,class_entry * ce)
   fprintf(f,"}\n");
 }
 
-int backend_print(class_chain * cls_chain, const char * out_file, 
-		  unsigned options, const char * extraopts)
+int backend_print(class_chain * cls_chain, class_chain * inst_chain, qual_chain * qual_chain, 
+			const char * out_file, const char * out_dir,
+			const char * ns, unsigned options, const char * extraopts)
 {
   FILE * outfile = fopen(out_file,"w");
   if (outfile == NULL) {
-    fprintf(stderr,"Failed to open %s",out_file);
+    fprintf(stderr,"Failed to open %s\n",out_file);
     return 1;
   }
+  
+  FILE * qualfile;
+  char qual_file[3000];
+	
+  strcpy(qual_file, out_dir);
+  strcat(qual_file, "/");
+  strcat(qual_file, ns);
+  strcat(qual_file, "/");  
+  strcat(qual_file, "qualifiers");
+  qualfile = fopen(qual_file, "w");
+  if (qualfile == NULL) {
+    fprintf(stderr,"Failed to open %s\n",qual_file);
+    return 1;
+  }  
   
   while (cls_chain && cls_chain->class_item) {
     print_class(outfile, cls_chain->class_item);
     cls_chain = cls_chain -> class_next;
   }
-
+  while (inst_chain && inst_chain->class_item) {
+  	print_instance(out_dir, ns, inst_chain->class_item);
+    inst_chain = inst_chain -> class_next;
+  }
+  while (qual_chain && qual_chain->qual_qual) {
+  	print_qualifier(qualfile, qual_chain->qual_qual);
+    qual_chain = qual_chain -> qual_next;
+  }
   fclose(outfile);
   return 0;
 }

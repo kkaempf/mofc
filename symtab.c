@@ -1,5 +1,5 @@
 /**
- * $Id: symtab.c,v 1.5 2006/08/23 11:52:14 mihajlov Exp $
+ * $Id: symtab.c,v 1.6 2006/10/27 13:14:21 sschuetz Exp $
  *
  * (C) Copyright IBM Corp. 2004
  * 
@@ -24,6 +24,7 @@
 # include <string.h>
 # include <stdio.h>
 
+extern hashentry * current_symtab;
 static char symerrstr[300];
 static void do_inheritance( class_entry * ce );
 
@@ -45,6 +46,25 @@ void add_class_list(class_chain * cl_ch, class_entry * cls)
   cl_ch -> class_item = cls;
 }
 
+void add_qual_list(qual_chain * qu_ch, qual_entry * q)
+{
+  while (qu_ch -> qual_next) qu_ch = qu_ch -> qual_next;
+  qu_ch -> qual_next = calloc( sizeof(qual_entry), 1 );
+  qu_ch -> qual_qual = q;
+}
+
+class_entry * get_class_from_list(class_chain * cl_ch, char * name)
+{
+  class_chain * cl_ch_local = cl_ch;
+  while (cl_ch_local) {
+  	if(strcmp(cl_ch_local->class_item->class_id, name))
+  		cl_ch_local = cl_ch_local->class_next;
+  	else
+  		return cl_ch_local->class_item; 
+  }
+  return 0;
+}
+
 #ifndef ONEPASS
 void fix_forward_decls(class_chain * cl_ch)
 {
@@ -62,7 +82,8 @@ qual_entry * make_qualifier_definition(hashentry * he,
 				       const char * name, 
 				       type_type typeid,
 				       char * arrayspec,
-				       value_chain * va_ch)
+				       value_chain * va_ch,
+				       qual_quals sf)
 {
   qual_entry * qe = calloc ( sizeof(qual_entry), 1 );
   symtab_entry * se = calloc ( sizeof(symtab_entry ), 1 );
@@ -70,7 +91,8 @@ qual_entry * make_qualifier_definition(hashentry * he,
   qe -> qual_type = typeid;
   qe -> qual_array = arrayspec ? atoi(arrayspec) : -1;
   qe -> qual_defval = va_ch;
-
+  qe -> qual_id = strdup(name);
+  qe -> qual_attrs = sf; //scope&flavor
   se -> sym_type = SYM_QUAL;
   se -> sym_union.sym_qual = qe;
   if (htinsert( he, upstrdup( name, strlen( name) ), 
@@ -356,6 +378,27 @@ class_entry * make_class( hashentry * he,
   return ce;
 }
 
+class_entry * make_instance( hashentry * he,
+			  qual_chain * qu_ch,
+			  const char * name, 
+			  void * erstmalNix, //schaun mer mal
+			  prop_or_method_list * pom_li)
+{
+  class_entry * ce = malloc(sizeof(class_entry));
+  prop_chain   * props;
+ 
+  ce -> class_id = strdup(name); 
+	if (pom_li) { 
+	  ce -> class_props = pom_li -> pom_props;
+	}
+	props = ce -> class_props;
+	while (props) {
+	  props = props -> prop_next;
+	}
+    
+  return ce;
+}
+
 class_entry * get_class_def( hashentry * he, const char * name )
 {
   symtab_entry * se = htlookup(he, upstrdup(name,strlen(name)), strlen(name));
@@ -582,4 +625,96 @@ void param_list_add(param_chain * pa_ch1, param_chain * pa_ch2)
 {
   while (pa_ch1 -> param_next) pa_ch1 = pa_ch1 -> param_next;
   pa_ch1 -> param_next = pa_ch2;
+}
+
+prop_chain * check_for_prop(class_entry * e, char * prop_id)
+{
+	prop_chain * props = e->class_props;
+	
+	while (props) {
+		if(strcmp(props->prop_id, prop_id)) 
+			props = props->prop_next;
+		else
+			return props;
+	}
+	return 0;
+} 
+
+int check_for_keys(class_entry * ce, class_entry * ie)
+{
+	prop_chain * classprop = ce->class_props;
+	prop_chain * tempprop = NULL;
+	
+	while(classprop) {
+		if(classprop->prop_attr & PROPERTY_KEY) {
+			//found key - see if it's defined in the instance
+			tempprop = check_for_prop(ie, classprop->prop_id);
+			if (!tempprop) {
+				sprintf(symerrstr,"not all keys defined for %s",ce->class_id);
+				yyerror(symerrstr);
+				return 0;
+			}
+		}
+		classprop = classprop->prop_next;
+	}
+	return 1;
+}
+
+int check_valid_props(class_entry * ce, class_entry * ie)
+{
+	prop_chain * instprop = ie->class_props;
+	
+	while(instprop) {
+		if(!check_for_prop(ce, instprop->prop_id)) {
+			sprintf(symerrstr,"invalid property %s defined for %s", instprop->prop_id,ce->class_id);
+			yyerror(symerrstr);
+			return 0;				
+		}
+		instprop = instprop->prop_next;
+	}
+	return 1;
+}
+
+class_entry * get_class_def_for_instance(class_entry * ie)
+{
+	char * className = ie->class_id;
+	
+	symtab_entry * se = htlookup(current_symtab, upstrdup(className,strlen(className)), strlen(className));
+	if(se) {
+		return se->sym_union.sym_class;
+	}
+	else {
+		sprintf(symerrstr,"class definition for %s not found",className);
+		yyerror(symerrstr);		
+	}
+	return NULL;
+}
+
+int make_scope(char * scopeVal)
+{
+	if(!strcasecmp(scopeVal, "class")) return Qual_S_Class;
+	if(!strcasecmp(scopeVal, "association")) return Qual_S_Association;
+	if(!strcasecmp(scopeVal, "reference")) return Qual_S_Reference;
+	if(!strcasecmp(scopeVal, "property")) return Qual_S_Property;
+	if(!strcasecmp(scopeVal, "method")) return Qual_S_Method;
+	if(!strcasecmp(scopeVal, "parameter")) return Qual_S_Parameter;
+	if(!strcasecmp(scopeVal, "indication")) return Qual_S_Indication;
+	if(!strcasecmp(scopeVal, "any")) return Qual_S_Any;
+
+	sprintf(symerrstr,"invalid scope %s", scopeVal);
+	yyerror(symerrstr);	
+	return 0;
+}
+
+int make_flavor(char * flavorVal)
+{
+	if(!strcasecmp(flavorVal, "enableoverride")) return 0; // because it's default
+	if(!strcasecmp(flavorVal, "disableoverride")) return Qual_F_DisableOverride;
+	if(!strcasecmp(flavorVal, "tosubclass")) return 0; // because it's default
+	if(!strcasecmp(flavorVal, "restricted")) return Qual_F_Restricted;
+	if(!strcasecmp(flavorVal, "translatable")) return Qual_F_Translatable;
+
+	sprintf(symerrstr,"invalid flavor %s", flavorVal);
+	yyerror(symerrstr);	
+	return 0;
 }
