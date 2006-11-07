@@ -3,6 +3,7 @@ Changes in 0.8.0
 
 Enhancements:
 - 1585788 support for instances and qualifiers added
+- 1587752 support for object swapping added
 
 
 Changes in 0.7.5

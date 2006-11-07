@@ -1,5 +1,5 @@
 /**
- * $Id: backend_sfcb.c,v 1.10 2006/10/27 13:14:21 sschuetz Exp $
+ * $Id: backend_sfcb.c,v 1.11 2006/11/07 15:00:20 sschuetz Exp $
  *
  * (C) Copyright IBM Corp. 2004
  * 
@@ -48,9 +48,13 @@ extern CMPIBroker *Broker;
 static unsigned sfcb_options = BACKEND_DEFAULT;
 static int endianMode = SFCB_LOCAL_ENDIAN;
 
-typedef void *(*Swap)(ClClass * cls, int *size);
+typedef void *(*SwapClass)(ClClass * cls, int *size);
+typedef void *(*SwapInstance)(ClInstance * inst, int *size);
+typedef void *(*SwapQualifier)(ClQualifierDeclaration * inst, int *size);
 static void *swapLib;
-static Swap swapEntry;
+static SwapClass swapEntryClass;
+static SwapInstance swapEntryInstance;
+static SwapQualifier swapEntryQualifier;
 static int swapMode=0;
 
 extern  char * repfn; //in fileRepository - rep location
@@ -293,7 +297,7 @@ static int sfcb_add_class(FILE * f, hashentry * he, class_entry * ce, int endian
 
     if (swapMode) {
        void *tmp=sfcbClassRewritten;
-       sfcbClassRewritten = swapEntry(sfcbClassRewritten,&size);
+       sfcbClassRewritten = swapEntryClass(sfcbClassRewritten,&size);
        free(tmp);
     }
        
@@ -332,10 +336,10 @@ CMPIObjectPath * mofc_getObjectPath(class_entry * ce, class_entry * ie, const ch
 
 int sfcb_add_qualifier(qual_entry * q, const char * ns)
 {
-	ClQualifierDeclaration * qual, * qualRewritten;
+	ClQualifierDeclaration * qual;
 	CMPIQualifierDecl * cmpi_qual = malloc(sizeof(CMPIQualifierDecl));
 	void * blob;
-	int len;
+	int len, size;
 	CMPIData d;
 	
 	qual = ClQualifierDeclarationNew(ns, q->qual_id);
@@ -355,12 +359,21 @@ int sfcb_add_qualifier(qual_entry * q, const char * ns)
 		
 	qual->flavor = q->qual_attrs.flavor;
 	qual->scope = q->qual_attrs.scope;
-	
-	qualRewritten = ClQualifierRebuildQualifier(qual, NULL);
-	cmpi_qual->hdl=qualRewritten;
+
+	cmpi_qual->hdl=qual;
  	len=getQualifierSerializedSize(cmpi_qual);
- 	blob=malloc(len+64);
+ 	blob=malloc(len);
 	getSerializedQualifier(cmpi_qual,blob);
+	
+    if (swapMode) {
+		size=((ClQualifierDeclaration *)((CMPIQualifierDecl * )blob)->hdl)->hdr.size;
+		int offset = len-size;
+		qual = swapEntryQualifier(blob+offset,&size);
+		len = offset + size;
+		blob = realloc(blob, len);
+		memcpy(blob+offset, qual, size);
+		free(qual);
+    }
 
 	if (addBlob((char*)ns, "qualifiers", q->qual_id, blob,(int)len)) {
 		fprintf(stderr,"could not write qualifier %s\n",q->qual_id);
@@ -373,11 +386,11 @@ int sfcb_add_qualifier(qual_entry * q, const char * ns)
 int sfcb_add_instance(class_entry * ie, const char * ns)
 {	
 	void * blob;
-	int len;
+	int len, size;
 	CMPIData data;
 	class_entry * ce; //class definition for ie
 	CMPIObjectPath * path;
-	ClInstance * inst, * instReWritten;
+	ClInstance * inst;
 	CMPIInstance* cmpi_instance = malloc(sizeof(CMPIInstance));
 	prop_chain * class_prop;
 	prop_chain * inst_props = ie -> class_props;
@@ -398,13 +411,21 @@ int sfcb_add_instance(class_entry * ie, const char * ns)
 		inst_props = inst_props->prop_next;
     }
 
-	instReWritten = ClInstanceRebuild(inst, NULL);	
-	cmpi_instance->hdl=instReWritten;
-
+	cmpi_instance->hdl=inst;
  	len=getInstanceSerializedSize(cmpi_instance);
- 	blob=malloc(len+64);
+ 	blob=malloc(len);
 	getSerializedInstance(cmpi_instance,blob);
 
+    if (swapMode) {
+		size=((ClInstance *)((CMPIInstance * )blob)->hdl)->hdr.size;
+		int offset = len-size;
+		inst = swapEntryInstance(blob+offset,&size);
+		len = offset + size;
+		blob = realloc(blob, len);
+		memcpy(blob+offset, inst, size);
+		free(inst);
+    }
+	
 	if (addBlob((char*)ns,ie->class_id,normalizeObjectPath(path),blob,(int)len)) {
 		fprintf(stderr,"could not write instance for class definition %s\n",ie->class_id);
 		return 1;
@@ -460,7 +481,9 @@ int backend_sfcb(class_chain * cls_chain, class_chain * inst_chain, qual_chain *
   if (strstr(extraopts,"P32")) {
     if (ix86) {
        char libName[]="libsfcObjectImplSwapI32toP32.so";
-       char entryName[]="swapI32toP32Class";
+       char entryNameClass[]="swapI32toP32Class";
+       char entryNameInstance[]="swapI32toP32Instance";
+       char entryNameQualifier[]="swapI32toP32QualifierDeclaration";
        char *error;
        
        endianMode=SFCB_BIG_ENDIAN;
@@ -470,7 +493,9 @@ int backend_sfcb(class_chain * cls_chain, class_chain * inst_chain, qual_chain *
           exit(16);
        }
        dlerror();
-       swapEntry = dlsym(swapLib, entryName);
+       swapEntryClass = dlsym(swapLib, entryNameClass);
+       swapEntryInstance = dlsym(swapLib, entryNameInstance);
+       swapEntryQualifier = dlsym(swapLib, entryNameQualifier);       
        if ((error = dlerror()) != NULL)  {
           fprintf (stderr, "--- swap library entry not found - %s\n", error);
           exit(16);
