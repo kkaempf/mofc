@@ -1,5 +1,5 @@
 /**
- * $Id: symtab.c,v 1.6 2006/10/27 13:14:21 sschuetz Exp $
+ * $Id: symtab.c,v 1.7 2006/11/20 12:51:59 mihajlov Exp $
  *
  * (C) Copyright IBM Corp. 2004
  * 
@@ -257,6 +257,7 @@ static char * get_version_qual(qual_chain * qc)
     if (strcasecmp(qc_help->qual_id,"version") == 0) {
       return qc_help->qual_vals->val_value;
     }
+    qc_help = qc_help -> qual_next;
   }
   return NULL;
 }

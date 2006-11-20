@@ -5,6 +5,9 @@ Enhancements:
 - 1585788 support for instances and qualifiers added
 - 1587752 support for object swapping added
 
+Bugs fixed:
+- 1599675 endless loop after class redefinition
+
 
 Changes in 0.7.5
 ================
