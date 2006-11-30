@@ -70,7 +70,7 @@ AC_PROG_CC
 AC_PROG_YACC
 AC_PROG_LEX
 
-if test -z ${YACC} || test -z ${LEX}
+if test -z "${YACC}" || test -z "${LEX}"
 then
 	AC_MSG_WARN([Lex and Yacc are required to build mofc from scratch or after grammar changes.])
 fi
