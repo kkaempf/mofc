@@ -1,6 +1,6 @@
 # $id: configure.ac,v 1.10 2006/01/23 15:35:09 a3schuur Exp $
 
-AC_INIT(MOF Compiler, 0.8.0, sblim-devel@lists.sourceforge.net,mofc)
+AC_INIT(MOF Compiler, 0.8.0a, sblim-devel@lists.sourceforge.net,mofc)
 AC_CONFIG_SRCDIR([hash.c])
 AC_CONFIG_HEADER([config.h])
 
@@ -69,6 +69,11 @@ fi
 AC_PROG_CC
 AC_PROG_YACC
 AC_PROG_LEX
+
+if test -z ${YACC} || test -z ${LEX}
+then
+	AC_MSG_WARN([Lex and Yacc are required to build mofc from scratch or after grammar changes.])
+fi
 
 # Checks for header files.
 AC_HEADER_STDC

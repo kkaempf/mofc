@@ -1,3 +1,8 @@
+2006-11-30  Viktor Mihajlovski  <mihajlov@dyn-9-152-143-50.boeblingen.de.ibm.com>
+
+	* configure.ac: 
+	Fixed 1605522: added warning if no yacc or lex found.
+	
 2006-11-20  Viktor Mihajlovski  <mihajlov@dyn-9-152-143-50.boeblingen.de.ibm.com>
 
 	* symtab.c: 
