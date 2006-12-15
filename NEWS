@@ -4,6 +4,7 @@ Changes in 0.8.1
 Bugs fixed:
 - 1599675 endless loop after class redefinition
 - 1605522 added warning of no yacc or lex found
+- 1614898 mofc coredumps for instance of undefined class
 
 Changes in 0.8.0
 ================

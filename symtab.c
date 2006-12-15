@@ -1,5 +1,5 @@
 /**
- * $Id: symtab.c,v 1.7 2006/11/20 12:51:59 mihajlov Exp $
+ * $Id: symtab.c,v 1.8 2006/12/15 15:46:00 sschuetz Exp $
  *
  * (C) Copyright IBM Corp. 2004
  * 
@@ -681,7 +681,7 @@ class_entry * get_class_def_for_instance(class_entry * ie)
 	char * className = ie->class_id;
 	
 	symtab_entry * se = htlookup(current_symtab, upstrdup(className,strlen(className)), strlen(className));
-	if(se) {
+	if(se && !(se->sym_union.sym_class->class_attr & CLASS_FORWARDDECL)) {
 		return se->sym_union.sym_class;
 	}
 	else {
