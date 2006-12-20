@@ -1,5 +1,5 @@
 /**
- * $Id: backend_sfcb.c,v 1.12 2006/12/15 15:46:00 sschuetz Exp $
+ * $Id: backend_sfcb.c,v 1.13 2006/12/20 16:50:36 mihajlov Exp $
  *
  * (C) Copyright IBM Corp. 2004
  * 
@@ -399,7 +399,9 @@ int sfcb_add_instance(class_entry * ie, const char * ns)
 	ce = get_class_def_for_instance(ie);
 	if(!ce) {
 		//class def not found
-		exit(0);
+		fprintf(stderr,"class definition for %s not found\n",
+			ie->class_id);
+		return 1;
 	}
 
 	path = mofc_getObjectPath(ce, ie, ns);

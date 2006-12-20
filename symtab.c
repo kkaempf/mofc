@@ -1,5 +1,5 @@
 /**
- * $Id: symtab.c,v 1.8 2006/12/15 15:46:00 sschuetz Exp $
+ * $Id: symtab.c,v 1.9 2006/12/20 16:50:36 mihajlov Exp $
  *
  * (C) Copyright IBM Corp. 2004
  * 
@@ -328,11 +328,19 @@ class_entry * make_class( hashentry * he,
   char         * version_this;
   char         * version_symtab;
 
+
 #ifndef RELAXED_MOF
-  if (strchr(name,'_') == NULL || strchr(name,'_')==(char*)name) {
-    sprintf(symerrstr,"class name %s invalid (missing schema prefix)",name);
-    yyerror(symerrstr);
+#ifdef NAMESPACE_KLUDGE
+  /* allow to define an old-style __Namespace class */
+  if (strcasecmp(name,"__namespace")) {
+#endif
+    if (strchr(name,'_') == NULL || strchr(name,'_')==(char*)name) {
+      sprintf(symerrstr,"class name %s invalid (missing schema prefix)",name);
+      yyerror(symerrstr);
+    }
+#ifdef NAMESPACE_KLUDGE
   }
+#endif
 #endif
   ce = get_class_def(he,name);
   if (ce) { 

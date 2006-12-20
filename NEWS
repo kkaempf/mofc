@@ -5,6 +5,7 @@ Bugs fixed:
 - 1599675 endless loop after class redefinition
 - 1605522 added warning of no yacc or lex found
 - 1614898 mofc coredumps for instance of undefined class
+- 1601274 new option --enable-namespace-kludge for legacy __namespace classes
 
 Changes in 0.8.0
 ================

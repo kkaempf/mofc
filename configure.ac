@@ -1,6 +1,6 @@
 # $id: configure.ac,v 1.10 2006/01/23 15:35:09 a3schuur Exp $
 
-AC_INIT(MOF Compiler, 0.8.0a, sblim-devel@lists.sourceforge.net,mofc)
+AC_INIT(MOF Compiler, 0.8.0b, sblim-devel@lists.sourceforge.net,mofc)
 AC_CONFIG_SRCDIR([hash.c])
 AC_CONFIG_HEADER([config.h])
 
@@ -26,6 +26,9 @@ AC_ARG_ENABLE(relax-mofsyntax,
 AC_ARG_ENABLE(onepass,
 	      [AC_HELP_STRING([--enable-onepass],
 		              [create one-pass parser, disallows forward declarations.])])
+AC_ARG_ENABLE(namespace-kludge,
+	      [AC_HELP_STRING([--enable-namespace-kludge],
+		              [allow to create __namespace class definition.])])
 AC_ARG_ENABLE(testscanner,
 	      [AC_HELP_STRING([--enable-testscanner],
 		              [produce a standalone scanner for testing.])])
@@ -107,6 +110,10 @@ AC_CHECK_FUNCS([strcasecmp strchr strdup strrchr strstr])
 # Defines
 if test "$enable_relax_mofsyntax" = yes; then
   AC_DEFINE(RELAXED_MOF,,[Relaxed MOF Parsing])
+fi
+
+if test "$enable_namespace_kludge" = yes; then
+  AC_DEFINE(NAMESPACE_KLUDGE,,[Allow __Namespace class name.])
 fi
 
 if test "$enable_onepass" = yes; then
