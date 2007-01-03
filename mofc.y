@@ -1,5 +1,5 @@
 /**
- * $Id: mofc.y,v 1.5 2006/10/27 13:14:21 sschuetz Exp $
+ * $Id: mofc.y,v 1.6 2007/01/03 11:44:08 sschuetz Exp $
  *
  * (C) Copyright IBM Corp. 2004
  * 
@@ -225,7 +225,7 @@ instance_definition : opt_qualifier_list INSTANCE OF Identifier opt_alias
                         opt_property_initializer_list
                    '}' ';'
                    {
-                   	 $$ = make_instance(current_symtab,$1,$4,NULL,$7);
+                   	 $$ = make_instance(current_symtab,$1,$4,$7);
                    	 add_class_list(cls_chain_current,get_class_def(current_symtab,$4));
                    }
 ;

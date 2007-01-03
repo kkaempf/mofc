@@ -1,5 +1,5 @@
 /**
- * $Id: symtab.h,v 1.5 2006/10/27 13:14:21 sschuetz Exp $
+ * $Id: symtab.h,v 1.6 2007/01/03 11:44:08 sschuetz Exp $
  *
  * (C) Copyright IBM Corp. 2004
  * 
@@ -209,8 +209,7 @@ param_chain * make_param_list(qual_chain * qu_ch,
 void param_list_add(param_chain * pa_ch1, param_chain * pa_ch2);
 class_entry * make_instance(hashentry * he, 
 			 qual_chain * qu_ch,
-			 const char * name, 
-			 void * erstmalNix, //TODO
+			 const char * name,
 			 prop_or_method_list * pom_li);
 prop_chain * check_for_prop(class_entry * e, char * prop_id);
 int check_for_keys(class_entry * ce, class_entry * ie);

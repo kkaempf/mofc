@@ -1,5 +1,5 @@
 /**
- * $Id: backend_sfcb.c,v 1.13 2006/12/20 16:50:36 mihajlov Exp $
+ * $Id: backend_sfcb.c,v 1.14 2007/01/03 11:44:08 sschuetz Exp $
  *
  * (C) Copyright IBM Corp. 2004
  * 
@@ -208,12 +208,19 @@ static int sfcb_add_class(FILE * f, hashentry * he, class_entry * ce, int endian
   ClClass * sfcbClass;
   ClClass * sfcbClassRewritten;
   ClProperty * sfcbProp;
+  ClMethod * sfcbMeth;
+  //ClParameter * sfcbParam;
+  CMPIParameter param;
   int prop_id;
   int qual_id;
+  int meth_id;
+  int meth_param_id;
   int size;
   /* Symtab related */
   qual_chain * quals = ce -> class_quals;
   prop_chain * props = ce -> class_props;
+  method_chain * meths = ce -> class_methods;
+  param_chain * meth_params;
   
 
   /* postfix processing - recursive */
@@ -291,6 +298,49 @@ static int sfcb_add_class(FILE * f, hashentry * he, class_entry * ce, int endian
       }
       props = props -> prop_next;
     }
+    while (meths) {
+    	meth_id = ClClassAddMethod(sfcbClass, meths->method_id, 
+    		make_cmpi_type(meths->method_type, meths->method_array));
+    	quals = meths->method_quals;
+    	sfcbMeth=((ClMethod*)ClObjectGetClSection(&sfcbClass->hdr,&sfcbClass->methods))+meth_id-1;
+    	/*while(quals) {
+    		ClClassAddMethodQualifier(&sfcbClass->hdr,
+    				sfcbMeth,
+    				quals->qual_id,
+    				make_cmpi_data(quals->qual_qual->qual_type,
+					       quals->qual_qual->qual_array,
+					       quals->qual_vals));
+			quals = quals->qual_next;
+    	}*/
+    	meth_params = meths->method_params;
+    	while(meth_params && meth_params->param_id) {
+    		param.type = make_cmpi_type(meth_params->param_type, meth_params->param_array);
+    		param.arraySize = meth_params->param_array;
+    		if(param.type == CMPI_ref && meth_params->param_value) {
+    			param.refName = meth_params->param_value->val_value;
+    		} else {
+    			param.refName = NULL;
+    		}
+    		meth_param_id = ClClassAddMethParameter(&sfcbClass->hdr,
+    							sfcbMeth,
+    							meth_params->param_id,
+    							param);
+    		/*quals = meth_params->param_quals;
+    		sfcbParam=((ClParameter*)ClObjectGetClSection(&sfcbClass->hdr,&sfcbMeth->parameters))+meth_param_id-1;
+    		while(quals) {
+    			ClClassAddMethParamQualifier(&sfcbClass->hdr,
+    								sfcbParam,
+    								quals->qual_id,
+    								make_cmpi_data(quals->qual_qual->qual_type,
+					       				quals->qual_qual->qual_array,
+					       				quals->qual_vals));
+				quals = quals->qual_next;   								
+    						
+    		}*/
+    		meth_params = meth_params->param_next;
+    	}
+    	meths = meths->method_next;
+    }    
     
     sfcbClassRewritten = ClClassRebuildClass(sfcbClass,NULL);
     size=sfcbClassRewritten->hdr.size;

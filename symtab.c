@@ -1,5 +1,5 @@
 /**
- * $Id: symtab.c,v 1.9 2006/12/20 16:50:36 mihajlov Exp $
+ * $Id: symtab.c,v 1.10 2007/01/03 11:44:08 sschuetz Exp $
  *
  * (C) Copyright IBM Corp. 2004
  * 
@@ -389,8 +389,7 @@ class_entry * make_class( hashentry * he,
 
 class_entry * make_instance( hashentry * he,
 			  qual_chain * qu_ch,
-			  const char * name, 
-			  void * erstmalNix, //schaun mer mal
+			  const char * name,
 			  prop_or_method_list * pom_li)
 {
   class_entry * ce = malloc(sizeof(class_entry));
