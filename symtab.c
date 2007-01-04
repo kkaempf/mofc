@@ -1,5 +1,5 @@
 /**
- * $Id: symtab.c,v 1.10 2007/01/03 11:44:08 sschuetz Exp $
+ * $Id: symtab.c,v 1.11 2007/01/04 11:43:08 sschuetz Exp $
  *
  * (C) Copyright IBM Corp. 2004
  * 
@@ -177,6 +177,7 @@ static prop_chain * merge_properties(prop_chain * pr_ch1, prop_chain * pr_ch2)
       if (strcasecmp(pr_ch2 -> prop_id, pr_search -> prop_id)==0) {
 	pr_search -> prop_quals = merge_qualifiers(pr_search -> prop_quals,
 						   pr_ch2 -> prop_quals);
+	pr_search->prop_attr |= pr_ch2->prop_attr;
 	break; /* already in list */
       }
       pr_search = pr_search -> prop_next;
@@ -499,7 +500,16 @@ char * make_string(const char * string)
   char *strstart = strchr(string,'"');
   char *strend = strrchr(string,'"');
   dups = calloc( strend - strstart, 1 );
-  strncpy(dups,strstart + 1,strend-strstart - 1);
+  
+  int length = strlen(string);
+  int a,i;
+  for(i = 1, a=0; i < length-1; i++) {
+  	//eliminate escaping backslashs
+  	if(!(string[i] == '\\' && string[i+1] == '"')) {
+  		dups[a++] = string[i];
+  	}
+  }
+  //strncpy(dups,strstart + 1,strend-strstart - 1);
   return dups;
 }
 

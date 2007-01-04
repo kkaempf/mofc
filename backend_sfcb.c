@@ -1,5 +1,5 @@
 /**
- * $Id: backend_sfcb.c,v 1.14 2007/01/03 11:44:08 sschuetz Exp $
+ * $Id: backend_sfcb.c,v 1.15 2007/01/04 11:43:07 sschuetz Exp $
  *
  * (C) Copyright IBM Corp. 2004
  * 
@@ -42,6 +42,7 @@ extern ClClass *ClClassRebuildClass(ClClass * cls, void *area);
 extern void ClClassFreeClass(ClClass * cls);
 extern char *ClClassToString(ClClass * cls);
 extern CMPIStatus sfcb_simpleArrayAdd(CMPIArray * array, CMPIValue * val, CMPIType type);
+extern CMPIObjectPath *getObjectPath(char *path, char **msg);
 
 extern CMPIBroker *Broker;
 
@@ -184,9 +185,14 @@ static CMPIData make_cmpi_data( type_type lextype, int arrayspec,
 	  data.state = CMPI_nullValue;
 	}
 	break;
-      default:
-	data.value.ref = CMNewObjectPath(Broker,NULL,
-					 lextype.type_ref -> class_id,NULL);
+      default:  {
+			char *msg=NULL;
+			data.value.ref = getObjectPath(vals -> val_value, &msg);
+			if(msg) {
+				fprintf(stderr, "Problem with Objectpath %s: %s\n", vals -> val_value, msg);
+				exit(0);
+			}
+	    }
       }
     }
   }
@@ -369,7 +375,6 @@ CMPIObjectPath * mofc_getObjectPath(class_entry * ce, class_entry * ie, const ch
 	
 	while(classprop) {
 		if(classprop->prop_attr & PROPERTY_KEY) { //found key - see if it's defined in the instance
-			
 			tempprop = check_for_prop(ie, classprop->prop_id);
 			if (tempprop) {
 				data = make_cmpi_data(classprop->prop_type, classprop->prop_array, tempprop->prop_value);
