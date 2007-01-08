@@ -1,6 +1,11 @@
 2007-01-04  Sven Schuetz
 
-	* backend_sfcb.c, symtab.c_
+	* backend_sfcb.c:
+	Fixed 1624528: sfcb getclass doesn't return methods
+
+2007-01-04  Sven Schuetz
+
+	* backend_sfcb.c, symtab.c:
 	Fixed 1616463: mofc doesn't process REF type properties
 
 2007-01-03  Sven Schuetz

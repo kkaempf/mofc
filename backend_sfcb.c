@@ -1,5 +1,5 @@
 /**
- * $Id: backend_sfcb.c,v 1.15 2007/01/04 11:43:07 sschuetz Exp $
+ * $Id: backend_sfcb.c,v 1.16 2007/01/08 12:58:53 sschuetz Exp $
  *
  * (C) Copyright IBM Corp. 2004
  * 
@@ -215,7 +215,7 @@ static int sfcb_add_class(FILE * f, hashentry * he, class_entry * ce, int endian
   ClClass * sfcbClassRewritten;
   ClProperty * sfcbProp;
   ClMethod * sfcbMeth;
-  //ClParameter * sfcbParam;
+  ClParameter * sfcbParam;
   CMPIParameter param;
   int prop_id;
   int qual_id;
@@ -309,7 +309,7 @@ static int sfcb_add_class(FILE * f, hashentry * he, class_entry * ce, int endian
     		make_cmpi_type(meths->method_type, meths->method_array));
     	quals = meths->method_quals;
     	sfcbMeth=((ClMethod*)ClObjectGetClSection(&sfcbClass->hdr,&sfcbClass->methods))+meth_id-1;
-    	/*while(quals) {
+    	while(quals) {
     		ClClassAddMethodQualifier(&sfcbClass->hdr,
     				sfcbMeth,
     				quals->qual_id,
@@ -317,7 +317,7 @@ static int sfcb_add_class(FILE * f, hashentry * he, class_entry * ce, int endian
 					       quals->qual_qual->qual_array,
 					       quals->qual_vals));
 			quals = quals->qual_next;
-    	}*/
+    	}
     	meth_params = meths->method_params;
     	while(meth_params && meth_params->param_id) {
     		param.type = make_cmpi_type(meth_params->param_type, meth_params->param_array);
@@ -331,7 +331,7 @@ static int sfcb_add_class(FILE * f, hashentry * he, class_entry * ce, int endian
     							sfcbMeth,
     							meth_params->param_id,
     							param);
-    		/*quals = meth_params->param_quals;
+    		quals = meth_params->param_quals;
     		sfcbParam=((ClParameter*)ClObjectGetClSection(&sfcbClass->hdr,&sfcbMeth->parameters))+meth_param_id-1;
     		while(quals) {
     			ClClassAddMethParamQualifier(&sfcbClass->hdr,
@@ -342,7 +342,7 @@ static int sfcb_add_class(FILE * f, hashentry * he, class_entry * ce, int endian
 					       				quals->qual_vals));
 				quals = quals->qual_next;   								
     						
-    		}*/
+    		}
     		meth_params = meth_params->param_next;
     	}
     	meths = meths->method_next;
