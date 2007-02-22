@@ -1,3 +1,8 @@
+2007-02-22  Sven Schuetz
+
+	* backend_sfcb.c:
+	Adopted change in sfcb function name (normalizeObjectpath)
+
 2007-01-04  Sven Schuetz
 
 	* backend_sfcb.c:

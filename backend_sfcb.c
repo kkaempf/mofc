@@ -1,5 +1,5 @@
 /**
- * $Id: backend_sfcb.c,v 1.16 2007/01/08 12:58:53 sschuetz Exp $
+ * $Id: backend_sfcb.c,v 1.17 2007/02/22 09:46:09 sschuetz Exp $
  *
  * (C) Copyright IBM Corp. 2004
  * 
@@ -27,6 +27,7 @@
 #include "mofc.h"
 #include "hash.h"
 #include "backend.h"
+#include "objectpath.h"
 #include <sys/utsname.h>
 
 
@@ -488,7 +489,7 @@ int sfcb_add_instance(class_entry * ie, const char * ns)
 		free(inst);
     }
 	
-	if (addBlob((char*)ns,ie->class_id,normalizeObjectPath(path),blob,(int)len)) {
+	if (addBlob((char*)ns,ie->class_id,normalizeObjectPathChars(path),blob,(int)len)) {
 		fprintf(stderr,"could not write instance for class definition %s\n",ie->class_id);
 		return 1;
 	}
