@@ -1,5 +1,5 @@
 /**
- * $Id: hash.h,v 1.2 2005/11/20 17:37:05 bestorga-oss Exp $
+ * $Id: hash.h,v 1.3 2007/03/20 09:40:54 mihajlov Exp $
  *
  * (C) Copyright IBM Corp. 2004
  * 
@@ -20,7 +20,7 @@
 #if !defined HASHH
 #define HASHH
 
-# define RADIX   15
+# define RADIX   17
 # define MAXHASH (( 1 << RADIX ) - 1)	/* 2^RADIX-1 elements in hash table */
 
   typedef struct{

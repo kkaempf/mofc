@@ -1,3 +1,11 @@
+Changes in 0.8.2
+================
+
+Bugs fixed:
+- 1624528 sfcb getclass doesn't return methods
+- 1616463 mofc doesn't process REF type properties
+- 1683860 Error compiling CIM v2.14Experimental
+
 Changes in 0.8.1
 ================
 
@@ -6,8 +14,6 @@ Bugs fixed:
 - 1605522 added warning of no yacc or lex found
 - 1614898 mofc coredumps for instance of undefined class
 - 1601274 new option --enable-namespace-kludge for legacy __namespace classes
-- 1624528 sfcb getclass doesn't return methods
-- 1616463 mofc doesn't process REF type properties
 
 Changes in 0.8.0
 ================
