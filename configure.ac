@@ -58,7 +58,7 @@ if test "$with_sfcb" == yes; then
    BACKEND_OBJ='backend_sfcb.$(OBJEXT)'
 
    BACKEND_LIBS="-L ../.libs -lsfcBrokerCore -lsfcFileRepository"
-   BACKEND_INCLUDES="-I $SFCB_DIR"
+   BACKEND_INCLUDES="-I $SFCB_DIR -I $SFCB_DIR/sfcUtil"
    AC_DEFINE(BACKEND_INFO,"SFCB Backend",[Backend Identification String])
 else
    BACKEND_STRING=default
