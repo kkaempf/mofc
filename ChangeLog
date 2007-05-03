@@ -1,3 +1,8 @@
+2007-05-03  Chris Abbey
+
+	* configure.ac:
+	Fixed 1709042: added dependency to sfcUtil
+
 2007-03-23  Viktor Mihajlovski  <mihajlov@localhost.localdomain>
 
 	* configure.ac: 
