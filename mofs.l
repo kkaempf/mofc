@@ -1,5 +1,5 @@
 /**
- * $Id: mofs.l,v 1.5 2006/10/27 13:14:21 sschuetz Exp $
+ * $Id: mofs.l,v 1.6 2007/06/22 10:34:44 sschuetz Exp $
  *
  * (C) Copyright IBM Corp. 2004
  * 
@@ -109,6 +109,8 @@ float                   [+-]?{digit}*\.{digit}+E?[+-]?{digit}*
 string                  \"([^\\"]|\\.)*\"
 charstring              \'([^\\']|\\.)*\'
 punctuation             [;,.:=(){}]
+
+%option nounput
 
 %x mlc
 %x inc
