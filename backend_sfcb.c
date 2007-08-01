@@ -1,5 +1,5 @@
 /**
- * $Id: backend_sfcb.c,v 1.17 2007/02/22 09:46:09 sschuetz Exp $
+ * $Id: backend_sfcb.c,v 1.18 2007/08/01 14:43:22 sschuetz Exp $
  *
  * (C) Copyright IBM Corp. 2004
  * 
@@ -323,8 +323,8 @@ static int sfcb_add_class(FILE * f, hashentry * he, class_entry * ce, int endian
     	while(meth_params && meth_params->param_id) {
     		param.type = make_cmpi_type(meth_params->param_type, meth_params->param_array);
     		param.arraySize = meth_params->param_array;
-    		if(param.type == CMPI_ref && meth_params->param_value) {
-    			param.refName = meth_params->param_value->val_value;
+    		if((param.type == CMPI_ref || param.type == CMPI_refA) && meth_params->param_type.type_ref) {
+    			param.refName = meth_params->param_type.type_ref->class_id;
     		} else {
     			param.refName = NULL;
     		}

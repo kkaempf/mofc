@@ -4,6 +4,7 @@ Changes in 0.8.3
 Bugs fixed:
 - 1709042 build system cleanup
 - 1741211 Fixed cleanup compiler warnings
+- 1763178 Fixed sfcb GetClass operation failure
 
 Changes in 0.8.2
 ================
