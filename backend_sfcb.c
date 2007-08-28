@@ -1,5 +1,5 @@
 /**
- * $Id: backend_sfcb.c,v 1.18 2007/08/01 14:43:22 sschuetz Exp $
+ * $Id: backend_sfcb.c,v 1.19 2007/08/28 08:37:13 sschuetz Exp $
  *
  * (C) Copyright IBM Corp. 2004
  * 
@@ -31,17 +31,6 @@
 #include <sys/utsname.h>
 
 
-/* Be aware that these are all entry points into SFCB's guts */
-extern int ClClassAddQualifier(ClObjectHdr * hdr, ClSection * qlfs,
-			       const char *id, CMPIData d);
-extern int ClClassAddProperty(ClClass * cls, const char *id, CMPIData d);
-extern void *ClObjectGetClSection(ClObjectHdr * hdr, ClSection * s);
-extern int ClClassAddPropertyQualifier(ClObjectHdr * hdr, ClProperty * p,
-				       const char *id, CMPIData d);
-extern ClClass *ClClassNew(const char *cn, const char *pa);
-extern ClClass *ClClassRebuildClass(ClClass * cls, void *area);
-extern void ClClassFreeClass(ClClass * cls);
-extern char *ClClassToString(ClClass * cls);
 extern CMPIStatus sfcb_simpleArrayAdd(CMPIArray * array, CMPIValue * val, CMPIType type);
 extern CMPIObjectPath *getObjectPath(char *path, char **msg);
 
@@ -218,6 +207,7 @@ static int sfcb_add_class(FILE * f, hashentry * he, class_entry * ce, int endian
   ClMethod * sfcbMeth;
   ClParameter * sfcbParam;
   CMPIParameter param;
+  CMPIData data;
   int prop_id;
   int qual_id;
   int meth_id;
@@ -272,11 +262,9 @@ static int sfcb_add_class(FILE * f, hashentry * he, class_entry * ce, int endian
 	fprintf(stderr,"  adding property %s for class %s \n", 
 		props -> prop_id, ce -> class_id );
       }
-      prop_id = ClClassAddProperty(sfcbClass,
-				   props->prop_id, 
-				   make_cmpi_data(props->prop_type,
-						  props->prop_array,
-						  props->prop_value));
+      data = make_cmpi_data(props->prop_type, props->prop_array, props->prop_value);
+      prop_id = ClClassAddProperty(sfcbClass, props->prop_id, 
+                                 data, data.type == CMPI_ref ? props->prop_type.type_ref->class_id : NULL);
       if (prop_id == 0) {
 	fprintf(stderr,"Error: could not add SFCB class property %s for %s\n",
 		props -> prop_id, ce -> class_id);

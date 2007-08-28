@@ -1,7 +1,12 @@
+2007-08-28  Sven Schuetz
+
+		* backend_sfcb.c:
+		Fixed 1685254: sfcb does not return REFERENCECLASS in GetClass
+
 2007-08-01  Sven Schuetz
 
         * backend_sfcb.c:
-        Fixed 1763178 GetClass operation failure
+        Fixed 1763178: GetClass operation failure
 
 2007-06-22  Tyrel Datwyler <tyreld@us.ibm.com>
 
