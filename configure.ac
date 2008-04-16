@@ -15,6 +15,8 @@ case $host_os in
 		MOFC_LDFLAGS=-W"l,XPLINK,dll,EDIT=NO"
 		;;
      **)	MOFC_CFLAGS="-Wall -fsigned-char"
+                MOFC_CMPI_PLATFORM="-D CMPI_PLATFORM_LINUX_GENERIC_GNU"
+                MOFC_CFLAGS="$MOFC_CFLAGS $MOFC_CMPI_PLATFORM"
 		;;
 esac
 AC_SUBST(MOFC_CPPFLAGS)
@@ -84,7 +86,7 @@ AC_HEADER_STDC
 AC_CHECK_HEADERS([stddef.h stdlib.h string.h unistd.h])
 if test "$with_sfcb" = yes; then
    save_CPPFLAGS=$CPPFLAGS
-   CPPFLAGS="-I $SFCB_DIR $CPPFLAGS"
+   CPPFLAGS="-I $SFCB_DIR $MOFC_CMPI_PLATFORM $CPPFLAGS"
    AC_CHECK_HEADER(objectImpl.h,,
 	[AC_MSG_ERROR([sorry, could not find SFCB include files. Hint: set SFCB_DIR environment variable.])])
    CPPFLAGS=$save_CPPFLAGS
