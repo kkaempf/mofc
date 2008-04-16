@@ -1,3 +1,8 @@
+2008-04-16  Sean Swehla
+
+		* configure.ac:
+		Fixed problem related to 1828500: CMPI 2.0 Support.
+
 2007-08-28  Sven Schuetz
 
 		* backend_sfcb.c:
