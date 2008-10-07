@@ -1,3 +1,9 @@
+Changes in 0.8.4
+================
+
+Bugs fixed:
+- 2086429 RPATH missing from sfcbmof[pp]
+
 Changes in 0.8.3
 ================
 

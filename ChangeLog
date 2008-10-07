@@ -1,3 +1,8 @@
+2008-10-07  Michael Chase-Salerno <bratac@linux.vnet.ibm.com>
+
+		* configure.ac autoconfiscate.sh
+		Fixed  2086429 RPATH missing from sfcbmof[pp]
+
 2008-04-16  Sean Swehla
 
 		* configure.ac:
