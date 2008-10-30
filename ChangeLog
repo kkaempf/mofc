@@ -1,3 +1,9 @@
+2008-10-30  Michael Chase-Salerno <bratac@linux.vnet.ibm.com>
+
+		* configure.ac
+		Fixed [ 2192030 ] adapt to autoconf 2.63, automake 1.10
+			(patch from Klaus Kämpf)
+
 2008-10-07  Michael Chase-Salerno <bratac@linux.vnet.ibm.com>
 
 		* configure.ac autoconfiscate.sh

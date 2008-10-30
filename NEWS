@@ -3,6 +3,7 @@ Changes in 0.8.4
 
 Bugs fixed:
 - 2086429 RPATH missing from sfcbmof[pp]
+- 2192030 adapt to autoconf 2.63, automake 1.10
 
 Changes in 0.8.3
 ================

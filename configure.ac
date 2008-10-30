@@ -73,6 +73,7 @@ fi
 
 # Checks for programs.
 AC_PROG_CC
+AM_PROG_CC_C_O
 AC_PROG_YACC
 AC_PROG_LEX
 AC_PROG_LIBTOOL
