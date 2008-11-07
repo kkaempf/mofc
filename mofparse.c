@@ -1,5 +1,5 @@
 /**
- * $Id: mofparse.c,v 1.7 2006/10/27 13:14:21 sschuetz Exp $
+ * $Id: mofparse.c,v 1.8 2008/11/07 16:51:36 mchasal Exp $
  *
  * (C) Copyright IBM Corp. 2004
  * 
@@ -112,7 +112,7 @@ static void version()
 static void help(const char * name)
 {
   usage(name);
-  version(name);
+  version();
   printf(" Allowed options are\n");
   printf("  -h             display this message\n");
   printf("  -v             print some extra information\n");

@@ -1,5 +1,5 @@
 /**
- * $Id: mofs.l,v 1.6 2007/06/22 10:34:44 sschuetz Exp $
+ * $Id: mofs.l,v 1.7 2008/11/07 16:51:36 mchasal Exp $
  *
  * (C) Copyright IBM Corp. 2004
  * 
@@ -24,7 +24,7 @@
 # include <ctype.h>
 # include <hash.h>
 
-
+#define YY_NO_INPUT
 # if defined SCANDEBUG    /* for debugging */
 #   undef YY_DECL
     typedef YY_CHAR * TOKENTYPE;
