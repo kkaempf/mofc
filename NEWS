@@ -1,3 +1,10 @@
+Changes in 0.8.5
+================
+
+Enhancements:
+
+- 2441640 mofc needs to import instances for migration
+
 Changes in 0.8.4
 ================
 

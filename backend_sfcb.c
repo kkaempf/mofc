@@ -1,5 +1,5 @@
 /**
- * $Id: backend_sfcb.c,v 1.19 2007/08/28 08:37:13 sschuetz Exp $
+ * $Id: backend_sfcb.c,v 1.20 2009/01/08 16:46:33 buccella Exp $
  *
  * (C) Copyright IBM Corp. 2004
  * 
@@ -449,7 +449,11 @@ int sfcb_add_instance(class_entry * ie, const char * ns)
 	}
 
 	path = mofc_getObjectPath(ce, ie, ns);
-	inst = ClInstanceNew(ns, ie->class_id);
+    
+    if (ie->instmig)
+    	inst = ClInstanceNew(ns, ie->class_id);
+    else
+    	inst = ClInstanceNewFromMof(ns, ie->class_id);
 
     while (inst_props) {
 		if (sfcb_options & BACKEND_VERBOSE) {

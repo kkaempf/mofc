@@ -1,5 +1,5 @@
 /**
- * $Id: mofparse.c,v 1.8 2008/11/07 16:51:36 mchasal Exp $
+ * $Id: mofparse.c,v 1.9 2009/01/08 16:46:33 buccella Exp $
  *
  * (C) Copyright IBM Corp. 2004
  * 
@@ -24,6 +24,7 @@
 #include <symtab.h>
 #include <mofdecl.h>
 #include <sys/stat.h>
+#include <stdlib.h>
 #include "mofc.h"
 #include "backend.h"
 #ifdef HAVE_CONFIG_H
@@ -42,9 +43,10 @@ static char outdir[3000] = {0};
 static char prefix[3000] = {0};
 static char backendopt[300] = {0};
 static char namespace[600] = {0};
+static char instmigfile[600] = {0};
 static size_t backendopt_used = 0;
 static char * inclfile = NULL;
-static char * valid_options = "b:o:I:i:d:n:hvV";
+static char * valid_options = "b:o:I:i:d:n:m:hvV";
 
 extern class_chain  * cls_chain_current;
 extern class_chain  * inst_chain_current;
@@ -67,7 +69,7 @@ static int parse_options(int argc, char * argv[])
       strncpy(outfile,optarg,sizeof(outfile));
       break;
     case 'n': 
-      strncpy(namespace,optarg,sizeof(outfile));
+      strncpy(namespace,optarg,sizeof(namespace));
       break;      
     case 'd': 
       strncpy(outdir,optarg,sizeof(outdir));
@@ -91,6 +93,9 @@ static int parse_options(int argc, char * argv[])
     case 'i':
       inclfile = strdup(optarg);
       break;
+    case 'm': 
+      strncpy(instmigfile,optarg,sizeof(instmigfile));
+      break;      
     default:
       return -1;
     }
@@ -101,7 +106,7 @@ static int parse_options(int argc, char * argv[])
 static void usage(const char * name)
 {
   fprintf(stderr,"usage: %s [-hvV] [-I includepath ...] [-i extrafile] [-o outfile] \
-[-b backendopts] [-d outputdirectory] [-n namespace] filename ... \n",name);
+[-b backendopts] [-d outputdirectory] [-n namespace] [-m instancefile] filename ... \n",name);
 }
 
 static void version()
@@ -123,6 +128,7 @@ static void help(const char * name)
   printf("  -b backendopts backend options, see backend documentation\n");
   printf("  -d output directory (recommended when parsing qualifiers and instances, as this creates more than one file)\n");
   printf("  -n target namespace, only needed for instances and qualifiers\n");
+  printf("  -m filename    file that includes instances for import/migration\n");
 }
 
 static int error_occured = 0;
@@ -187,7 +193,7 @@ int main(int argc, char * argv[])
 	strcat(prefix, outfile);
   }
   
-  if (init_scanner(argv+argidx,argc-argidx,inclpath,inclfile,opt_verbose) != 0 ) {
+  if (init_scanner(argv+argidx,argc-argidx,inclpath,inclfile,instmigfile,opt_verbose) != 0 ) {
     return 2;
   }
   if ( ( yyparse() || error_occured )) {
@@ -195,14 +201,22 @@ int main(int argc, char * argv[])
       fprintf( stderr, "error has occured in %s\n", argv[argidx] );
     }
     stop_scanner();
+    if (inclfile)
+        free(inclfile);
     return 3;
   }
   if (backend_ptr(cls_chain_current, inst_chain_current, qual_chain_current, prefix, outdir, namespace,  
 		  opt_verbose ? BACKEND_VERBOSE : BACKEND_DEFAULT,
 		  backendopt) ) {
     fprintf( stderr, "backend error has occured writing %s\n", outfile );
+    stop_scanner();
+    if (inclfile)
+        free(inclfile);
+    return 4;
   }
   stop_scanner();
+  if (inclfile)
+      free(inclfile);
   return 0;
 }
 

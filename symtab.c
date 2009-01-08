@@ -1,5 +1,5 @@
 /**
- * $Id: symtab.c,v 1.11 2007/01/04 11:43:08 sschuetz Exp $
+ * $Id: symtab.c,v 1.12 2009/01/08 16:46:33 buccella Exp $
  *
  * (C) Copyright IBM Corp. 2004
  * 
@@ -391,12 +391,14 @@ class_entry * make_class( hashentry * he,
 class_entry * make_instance( hashentry * he,
 			  qual_chain * qu_ch,
 			  const char * name,
-			  prop_or_method_list * pom_li)
+			  prop_or_method_list * pom_li,
+              int instmig)
 {
   class_entry * ce = malloc(sizeof(class_entry));
   prop_chain   * props;
  
   ce -> class_id = strdup(name); 
+  ce -> instmig = instmig;
 	if (pom_li) { 
 	  ce -> class_props = pom_li -> pom_props;
 	}
@@ -650,7 +652,7 @@ prop_chain * check_for_prop(class_entry * e, char * prop_id)
 	prop_chain * props = e->class_props;
 	
 	while (props) {
-		if(strcmp(props->prop_id, prop_id)) 
+		if(strcasecmp(props->prop_id, prop_id)) 
 			props = props->prop_next;
 		else
 			return props;

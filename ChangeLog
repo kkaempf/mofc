@@ -1,3 +1,10 @@
+2009-01-08  Chris Buccella  <buccella@linux.vnet.ibm.com>
+
+	* backend_print.c, backend_sfcb.c, mofc.y, mofdecl.h, 
+	  mofparse.c, mofs.l, symtab.c, symtab.h:
+	Fixed [ 2441640 ] mofc needs to import instances for migration
+	(fix by Norm Paxton)
+	
 2008-11-07  Michael Chase-Salerno <bratac@linux.vnet.ibm.com>
 
 		* mofparse.c mofs.l:

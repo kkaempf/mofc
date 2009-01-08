@@ -1,5 +1,5 @@
 /**
- * $Id: symtab.h,v 1.6 2007/01/03 11:44:08 sschuetz Exp $
+ * $Id: symtab.h,v 1.7 2009/01/08 16:46:33 buccella Exp $
  *
  * (C) Copyright IBM Corp. 2004
  * 
@@ -133,7 +133,8 @@ struct class_struct {
   struct class_struct * class_parent;
   qual_chain          * class_quals; 
   prop_chain          * class_props; 
-  method_chain        * class_methods; 
+  method_chain        * class_methods;
+  int                   instmig;
 };
 
 typedef struct symtab_struct {
@@ -210,7 +211,8 @@ void param_list_add(param_chain * pa_ch1, param_chain * pa_ch2);
 class_entry * make_instance(hashentry * he, 
 			 qual_chain * qu_ch,
 			 const char * name,
-			 prop_or_method_list * pom_li);
+			 prop_or_method_list * pom_li,
+             int instmig);
 prop_chain * check_for_prop(class_entry * e, char * prop_id);
 int check_for_keys(class_entry * ce, class_entry * ie);
 class_entry * get_class_def_for_instance(class_entry * ie);

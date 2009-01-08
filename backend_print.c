@@ -1,5 +1,5 @@
 /**
- * $Id: backend_print.c,v 1.3 2006/10/27 13:14:21 sschuetz Exp $
+ * $Id: backend_print.c,v 1.4 2009/01/08 16:46:33 buccella Exp $
  *
  * (C) Copyright IBM Corp. 2004
  * 
@@ -139,6 +139,10 @@ static void print_instance(const char * outdir, const char * ns, class_entry * i
 		
 		fprintf(f,"Instance %s ",ie -> class_id);
 		fprintf(f,"{\n");
+        if (ie->instmig)
+            fprintf(f, "  From Instance Import/Migration\n");
+        else
+            fprintf(f, "  From MOF\n");                        
 		print_property_chain(f,ie -> class_props);
 		fprintf(f,"}\n");
 		fprintf(f,"\n");

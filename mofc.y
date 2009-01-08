@@ -1,5 +1,5 @@
 /**
- * $Id: mofc.y,v 1.6 2007/01/03 11:44:08 sschuetz Exp $
+ * $Id: mofc.y,v 1.7 2009/01/08 16:46:33 buccella Exp $
  *
  * (C) Copyright IBM Corp. 2004
  * 
@@ -31,7 +31,7 @@
 extern class_chain  * cls_chain_current;
 extern class_chain  * inst_chain_current;
 extern qual_chain  * qual_chain_current;
-
+extern int g_instmig;
 %}
 
 
@@ -225,7 +225,7 @@ instance_definition : opt_qualifier_list INSTANCE OF Identifier opt_alias
                         opt_property_initializer_list
                    '}' ';'
                    {
-                   	 $$ = make_instance(current_symtab,$1,$4,$7);
+                   	 $$ = make_instance(current_symtab,$1,$4,$7,g_instmig);
                    	 add_class_list(cls_chain_current,get_class_def(current_symtab,$4));
                    }
 ;

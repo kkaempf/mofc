@@ -1,5 +1,5 @@
 /**
- * $Id: mofdecl.h,v 1.2 2005/11/20 17:37:05 bestorga-oss Exp $
+ * $Id: mofdecl.h,v 1.3 2009/01/08 16:46:33 buccella Exp $
  *
  * (C) Copyright IBM Corp. 2004
  * 
@@ -30,7 +30,7 @@ extern int yylex(void);
 int yyparse(void);
 char * upstrdup( const char *, int );
 int init_scanner(char * parsefiles[], int numfiles, const char * includedir, 
-		 const char * extrafile, int verbose);
+		 const char * extrafile, const char * instmigfile, int verbose);
 void stop_scanner(void);
 FILE * try_open_file(const char * filename);
 extern int line_number;

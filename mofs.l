@@ -1,5 +1,5 @@
 /**
- * $Id: mofs.l,v 1.7 2008/11/07 16:51:36 mchasal Exp $
+ * $Id: mofs.l,v 1.8 2009/01/08 16:46:33 buccella Exp $
  *
  * (C) Copyright IBM Corp. 2004
  * 
@@ -78,6 +78,7 @@ int verbosescan = 0;
 char * upyytext;
 char * includepath = NULL;
 char * extrainclude = NULL;
+int g_instmig = 0;
 
 typedef struct file_stack_struct {
   char                     * file_name;
@@ -88,9 +89,10 @@ typedef struct file_stack_struct {
 #ifndef SCANDEBUG
   class_chain              * file_cls;
 #endif
+  int                        instmig;
 } file_stack_entry;
 file_stack_entry *current_file;
-void push_file(FILE * file_handle, char * filename, int keep_symtab);
+void push_file(FILE * file_handle, char * filename, int keep_symtab, int instmig);
 void pop_file();
 
 %}
@@ -179,7 +181,7 @@ punctuation             [;,.:=(){}]
                              }
                              file_handle = try_open_file( incfilename );
                              if ( file_handle ) {
-                               push_file( file_handle, incfilename, 0 );
+                               push_file( file_handle, incfilename, 0, 0 );
                              } else {
                                fprintf(stderr,"include file %s not found\n", 
                                        incfilename);
@@ -203,6 +205,7 @@ punctuation             [;,.:=(){}]
                                  fclose(current_file -> file_handle);
                               }
                               current_file = current_file -> next_file;
+                              g_instmig = current_file -> instmig;
                               file_name = current_file -> file_name;
                               line_number = current_file -> line_number;
                               cls_chain_current = current_file -> file_cls;
@@ -222,7 +225,7 @@ punctuation             [;,.:=(){}]
 */
 
 int init_scanner(char * parsefiles[], int numfiles, const char * includedir,
-                const char * extrafile, int verbose)
+                const char * extrafile, const char * instmigfile, int verbose)
 {
   FILE * file_handle;
   int i;
@@ -261,20 +264,37 @@ int init_scanner(char * parsefiles[], int numfiles, const char * includedir,
   inst_chain_current = calloc(sizeof(class_chain),1);
   qual_chain_current = calloc(sizeof(qual_chain),1);  
   current_file = NULL;
+  /* Must push instanceMigration file prior to other files,
+     so it gets installed last.
+     This will cause any instances that are in both MOF and static
+     (ie previous MOF, then modified), the MOF version will be
+     written first, then the static instance version will be written
+     after, causing an overwrite, so the static instance wins
+  */
+  if (instmigfile && *instmigfile) {
+    file_handle = try_open_file( instmigfile );
+    if (file_handle) {
+      push_file(file_handle, (char *)instmigfile,1,1);
+    } else {
+      fprintf(stderr,"instance import/migration file %s not found\n", 
+                      instmigfile);
+      return -1;
+    }
+  }
   for (i=numfiles-1; i >=0; i--) {
     file_handle = fopen(parsefiles[i],"r");
     if (file_handle == NULL) {
       fprintf(stderr,"could not open %s\n",parsefiles[i]);   
       return -1;
     }
-    push_file(file_handle,parsefiles[i],1);
+    push_file(file_handle,parsefiles[i],1,0);
   }
   includepath = (char*) includedir;
   extrainclude = (char*) extrafile;
   if (extrainclude) {
     file_handle = try_open_file( extrainclude );
     if (file_handle) {
-      push_file(file_handle, extrainclude,0);
+      push_file(file_handle, extrainclude,0,0);
     } else {
       fprintf(stderr,"extra file %s not found\n", 
                       extrainclude);
@@ -291,12 +311,13 @@ void stop_scanner()
   htdelete( current_symtab );
 }
 
-void push_file( FILE *file_handle, char * filename, int keep_symtab )
+void push_file( FILE *file_handle, char * filename, int keep_symtab, int instmig )
 {
   file_stack_entry * fse = 
          calloc( sizeof(file_stack_entry), 1);
   fse -> file_handle = file_handle;
   fse -> file_name = strdup( filename );
+  fse -> instmig = instmig;
   fse -> yybuffer = 
       yy_create_buffer( file_handle, YY_BUF_SIZE );
   if (current_file) {
