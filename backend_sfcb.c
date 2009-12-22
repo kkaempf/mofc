@@ -1,5 +1,5 @@
 /**
- * $Id: backend_sfcb.c,v 1.20 2009/01/08 16:46:33 buccella Exp $
+ * $Id: backend_sfcb.c,v 1.21 2009/12/22 00:18:29 buccella Exp $
  *
  * (C) Copyright IBM Corp. 2004
  * 
@@ -48,6 +48,7 @@ static SwapInstance swapEntryInstance;
 static SwapQualifier swapEntryQualifier;
 static int swapMode=0;
 
+extern int opt_reduced;
 extern  char * repfn; //in fileRepository - rep location
 
 #define BACKEND_SFCB_NO_QUALIFIERS      0x0100
@@ -338,6 +339,9 @@ static int sfcb_add_class(FILE * f, hashentry * he, class_entry * ce, int endian
     }    
     
     sfcbClassRewritten = ClClassRebuildClass(sfcbClass,NULL);
+    if (opt_reduced) {
+        sfcbClassRewritten->hdr.type = HDR_IncompleteClass;
+    }
     size=sfcbClassRewritten->hdr.size;
 
     if (swapMode) {
@@ -563,8 +567,10 @@ int backend_sfcb(class_chain * cls_chain, class_chain * inst_chain, qual_chain *
     }
   }
   
-  if(class_file)
-  	sfcb_add_version(class_file, ClTypeClassRep, endianMode);
+  if(class_file) {
+    int rep_type = (opt_reduced) ? ClTypeClassReducedRep : ClTypeClassRep; 
+    sfcb_add_version(class_file, rep_type, endianMode);
+  }
 
   while (cls_chain && cls_chain->class_item) {
     if (sfcb_add_class(class_file, classes_done, cls_chain->class_item,endianMode)) {

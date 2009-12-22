@@ -1,5 +1,5 @@
 /**
- * $Id: mofparse.c,v 1.9 2009/01/08 16:46:33 buccella Exp $
+ * $Id: mofparse.c,v 1.10 2009/12/22 00:18:29 buccella Exp $
  *
  * (C) Copyright IBM Corp. 2004
  * 
@@ -33,7 +33,6 @@
 #error "config.h missing -- did you run ./configure ?"
 #endif
 
-
 static int opt_verbose = 0; 
 static int opt_version = 0;
 static int opt_help = 0;
@@ -46,7 +45,9 @@ static char namespace[600] = {0};
 static char instmigfile[600] = {0};
 static size_t backendopt_used = 0;
 static char * inclfile = NULL;
-static char * valid_options = "b:o:I:i:d:n:m:hvV";
+static char * valid_options = "b:o:I:i:d:n:m:hvVt";
+
+extern int opt_reduced;
 
 extern class_chain  * cls_chain_current;
 extern class_chain  * inst_chain_current;
@@ -58,11 +59,11 @@ static int parse_options(int argc, char * argv[])
   int opt;
   while ((opt=getopt(argc,argv,valid_options)) != -1) {
     switch (opt) {
-    case 'b': 
+    case 'b':
       backendopt_used += strlen(optarg);
       if (backendopt_used < sizeof(backendopt) - 1 ) {
-	strcat(backendopt," ");
-	strcat(backendopt,optarg);
+	    strcat(backendopt," ");
+	    strcat(backendopt,optarg);
       }
       break;
     case 'o': 
@@ -93,6 +94,9 @@ static int parse_options(int argc, char * argv[])
     case 'i':
       inclfile = strdup(optarg);
       break;
+    case 't':
+      opt_reduced = 1;
+      break;
     case 'm': 
       strncpy(instmigfile,optarg,sizeof(instmigfile));
       break;      
@@ -106,7 +110,7 @@ static int parse_options(int argc, char * argv[])
 static void usage(const char * name)
 {
   fprintf(stderr,"usage: %s [-hvV] [-I includepath ...] [-i extrafile] [-o outfile] \
-[-b backendopts] [-d outputdirectory] [-n namespace] [-m instancefile] filename ... \n",name);
+[-b backendopts] [-d outputdirectory] [-n namespace] [-t] [-m instancefile] filename ... \n",name);
 }
 
 static void version()
@@ -122,6 +126,7 @@ static void help(const char * name)
   printf("  -h             display this message\n");
   printf("  -v             print some extra information\n");
   printf("  -V             print version information\n");
+  printf("  -t             generate tiny class schema by omitting inheritance information\n");
   printf("  -I includepath directory to search for include files\n");
   printf("  -i extrafile   file to load before parsing\n");
   printf("  -o outfile     class schema output file to generate (default: mofc.out)\n");

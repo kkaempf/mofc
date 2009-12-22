@@ -1,5 +1,5 @@
 /**
- * $Id: symtab.c,v 1.12 2009/01/08 16:46:33 buccella Exp $
+ * $Id: symtab.c,v 1.13 2009/12/22 00:18:29 buccella Exp $
  *
  * (C) Copyright IBM Corp. 2004
  * 
@@ -27,6 +27,8 @@
 extern hashentry * current_symtab;
 static char symerrstr[300];
 static void do_inheritance( class_entry * ce );
+
+int opt_reduced = 0;
 
 symtab_entry * make_token( int token_value )
 {
@@ -239,7 +241,7 @@ static void do_inheritance( class_entry * ce )
     }
     qu_ch = qu_ch -> qual_next;
   }
-  if (ce -> class_parent) {
+  if (!opt_reduced && ce -> class_parent) {
     ce -> class_attr |= (ce -> class_parent -> class_attr);
     ce -> class_quals = merge_qualifiers(ce -> class_quals, 
 					 ce -> class_parent -> class_quals);
