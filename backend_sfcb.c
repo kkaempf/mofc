@@ -19,7 +19,7 @@
  *
  */
 
-#include "cmpidt.h"
+#include "cmpi/cmpidt.h"
 #include "objectImpl.h"
 #include "fileRepository.h"
 #include "mofdecl.h"

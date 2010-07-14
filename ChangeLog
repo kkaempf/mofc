@@ -1,3 +1,8 @@
+2010-07-14  Chris Buccella  <buccella@linux.vnet.ibm.com>
+
+	* backend_sfcb.c:
+	[ 3019898 ] Remove cmpi headers
+
 2009-01-08  Chris Buccella  <buccella@linux.vnet.ibm.com>
 
 	* backend_print.c, backend_sfcb.c, mofc.y, mofdecl.h, 
