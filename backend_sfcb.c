@@ -465,6 +465,10 @@ int sfcb_add_instance(class_entry * ie, const char * ns)
 			inst_props -> prop_id, ie -> class_id );
 		}
 		class_prop = check_for_prop(ce, inst_props->prop_id);
+		if (!class_prop) {
+		  fprintf(stderr, "bad property name \"%s\"\n", inst_props->prop_id);
+		  return 1;
+		}
 		data = make_cmpi_data(class_prop->prop_type, class_prop->prop_array, inst_props->prop_value);
 		ClInstanceAddProperty(inst, inst_props->prop_id, data);
 		inst_props = inst_props->prop_next;

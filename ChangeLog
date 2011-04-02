@@ -1,3 +1,8 @@
+2011-04-01  Chris Buccella  <buccella@linux.vnet.ibm.com>
+
+	* backend_sfcb.c:
+	Fixed [ 3179149 ] mofc sigsegv at backend_sfcb:468 w/o correct property name
+
 2010-07-14  Chris Buccella  <buccella@linux.vnet.ibm.com>
 
 	* backend_sfcb.c:
@@ -12,30 +17,30 @@
 	
 2008-11-07  Michael Chase-Salerno <bratac@linux.vnet.ibm.com>
 
-		* mofparse.c mofs.l:
-		Fixed [ 2168840 ] Fix various compiler warnings. 
-			(patch from J. Bart Whitely)
+	* mofparse.c mofs.l:
+	Fixed [ 2168840 ] Fix various compiler warnings. 
+	(patch from J. Bart Whitely)
 
 2008-10-30  Michael Chase-Salerno <bratac@linux.vnet.ibm.com>
 
-		* configure.ac
-		Fixed [ 2192030 ] adapt to autoconf 2.63, automake 1.10
-			(patch from Klaus Kämpf)
+	* configure.ac
+	Fixed [ 2192030 ] adapt to autoconf 2.63, automake 1.10
+	(patch from Klaus Kämpf)
 
 2008-10-07  Michael Chase-Salerno <bratac@linux.vnet.ibm.com>
 
-		* configure.ac autoconfiscate.sh
-		Fixed  2086429 RPATH missing from sfcbmof[pp]
+	* configure.ac, autoconfiscate.sh
+	Fixed  2086429 RPATH missing from sfcbmof[pp]
 
 2008-04-16  Sean Swehla
 
-		* configure.ac:
-		Fixed problem related to 1828500: CMPI 2.0 Support.
+	* configure.ac:
+	Fixed problem related to 1828500: CMPI 2.0 Support.
 
 2007-08-28  Sven Schuetz
 
-		* backend_sfcb.c:
-		Fixed 1685254: sfcb does not return REFERENCECLASS in GetClass
+	* backend_sfcb.c:
+	Fixed 1685254: sfcb does not return REFERENCECLASS in GetClass
 
 2007-08-01  Sven Schuetz
 
