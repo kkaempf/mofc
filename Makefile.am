@@ -7,6 +7,8 @@ AM_LDFLAGS=@MOFC_LDFLAGS@
 AM_LFLAGS=-i
 AM_YFLAGS=-d
 
+AUTOMAKE_OPTIONS = no-dist-gzip dist-bzip2
+
 BUILT_SOURCES=mofc.h
 
 if TESTSCANNER
@@ -25,7 +27,8 @@ mofc_LDADD=mofc-@BACKEND_OBJ@ @BACKEND_LIBS@ @LEXLIB@
 mofc_CPPFLAGS=@BACKEND_INCLUDES@
 
 EXTRA_DIST=runtest.sh tests/test1.mof tests/include/test2.mof \
-	tests/include/test3.mof 
+	tests/include/test3.mof \
+	autoconfiscate.sh
 
 
 if ALTERNATE_MOFCNAME
