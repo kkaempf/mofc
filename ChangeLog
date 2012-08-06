@@ -8,17 +8,22 @@
 	* backend_sfcb.c:
 	[ 3019898 ] Remove cmpi headers
 
+2009-12-22  Chris Buccella  <buccella@linux.vnet.ibm.com>
+
+	* backend_sfcb.c, mofparse.c, symtab.c:
+	[ 1664637 ] Reduced size class repository / classProviderSf
+
 2009-01-08  Chris Buccella  <buccella@linux.vnet.ibm.com>
 
-	* backend_print.c, backend_sfcb.c, mofc.y, mofdecl.h, 
+	* backend_print.c, backend_sfcb.c, mofc.y, mofdecl.h,
 	  mofparse.c, mofs.l, symtab.c, symtab.h:
 	Fixed [ 2441640 ] mofc needs to import instances for migration
 	(fix by Norm Paxton)
-	
+
 2008-11-07  Michael Chase-Salerno <bratac@linux.vnet.ibm.com>
 
 	* mofparse.c mofs.l:
-	Fixed [ 2168840 ] Fix various compiler warnings. 
+	Fixed [ 2168840 ] Fix various compiler warnings.
 	(patch from J. Bart Whitely)
 
 2008-10-30  Michael Chase-Salerno <bratac@linux.vnet.ibm.com>
@@ -59,13 +64,13 @@
 
 2007-03-23  Viktor Mihajlovski  <mihajlov@localhost.localdomain>
 
-	* configure.ac: 
+	* configure.ac:
 	Addition for 1686170: instance comparison not supported.
 	Needed to adjust the include path for the sfcb backend case.
 
 2007-03-20  Viktor Mihajlovski  <mihajlov@dyn-9-152-210-57.boeblingen.de.ibm.com>
 
-	* hash.h: 
+	* hash.h:
 	Fixed 1683860: Error compiling CIM v2.14Experimental
 	The symbol hashtable was too small for 2.14e, has been increased
 	by factor 4.
@@ -92,7 +97,7 @@
 
 2006-12-20  Viktor Mihajlovski  <mihajlov@localhost.localdomain>
 
-	* backend_sfcb.c, configure.ac, symtab.c: 
+	* backend_sfcb.c, configure.ac, symtab.c:
 	Combined fix for 1601274, 1614898: new option --enable-namespace-kludge
 	for the support of legacy __namespace class compilation.
 
@@ -103,12 +108,12 @@
 
 2006-11-30  Viktor Mihajlovski  <mihajlov@dyn-9-152-143-50.boeblingen.de.ibm.com>
 
-	* configure.ac: 
+	* configure.ac:
 	Fixed 1605522: added warning if no yacc or lex found.
-	
+
 2006-11-20  Viktor Mihajlovski  <mihajlov@dyn-9-152-143-50.boeblingen.de.ibm.com>
 
-	* symtab.c: 
+	* symtab.c:
 	Fixed 1599675: endless loop after class redefinition.
 
 2006-11-07  Sven Schuetz
@@ -122,13 +127,13 @@
 
 2006-08-23  Viktor Mihajlovski  <mihajlov@dyn-9-152-143-50.boeblingen.de.ibm.com>
 
-	* symtab.c: 
+	* symtab.c:
 	Fixed 1532423: allow class redefinition (upgrade) if a version
 	qualifier is specified.
 
 2006-07-25  Viktor Mihajlovski  <mihajlov@dyn-9-152-143-50.boeblingen.de.ibm.com>
 
-	* configure.ac, mofc.y, symtab.c, symtab.h: 
+	* configure.ac, mofc.y, symtab.c, symtab.h:
 	Fixed 1528352: now the compiler can support forward declarations.
 	The old behaviour can be established using --enable-onepass.
 

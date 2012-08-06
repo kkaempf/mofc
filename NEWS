@@ -4,8 +4,9 @@ Changes in 0.8.5
 Enhancements:
 
 - 2441640 mofc needs to import instances for migration
+- 1664637 Reduced size class repository / classProviderSf
 - 3019898 Remove cmpi headers
--  3179149 mofc sigsegv at backend_sfcb:468 w/o correct property name
+- 3179149 mofc sigsegv at backend_sfcb:468 w/o correct property name
 
 Changes in 0.8.4
 ================
