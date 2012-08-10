@@ -214,6 +214,7 @@ class_entry * make_instance(hashentry * he,
 			 prop_or_method_list * pom_li,
              int instmig);
 prop_chain * check_for_prop(class_entry * e, char * prop_id);
+prop_chain * check_for_parent_prop(class_entry * e, char * prop_id);
 int check_for_keys(class_entry * ce, class_entry * ie);
 class_entry * get_class_def_for_instance(class_entry * ie);
 int check_valid_props(class_entry * ce, class_entry * ie);

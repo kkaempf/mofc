@@ -260,8 +260,12 @@ static int sfcb_add_class(FILE * f, hashentry * he, class_entry * ce, int endian
     }
     while (props) {
       if (sfcb_options & BACKEND_VERBOSE) {
-	fprintf(stderr,"  adding property %s for class %s \n", 
-		props -> prop_id, ce -> class_id );
+	if (props->prop_attr & PROPERTY_KEY)
+	  fprintf(stderr,"  adding key property %s for class %s \n",
+		  props -> prop_id, ce -> class_id );
+	else
+	  fprintf(stderr,"  adding property %s for class %s \n",
+		  props -> prop_id, ce -> class_id );
       }
       data = make_cmpi_data(props->prop_type, props->prop_array, props->prop_value);
       prop_id = ClClassAddProperty(sfcbClass, props->prop_id, 
@@ -465,8 +469,11 @@ int sfcb_add_instance(class_entry * ie, const char * ns)
 			inst_props -> prop_id, ie -> class_id );
 		}
 		class_prop = check_for_prop(ce, inst_props->prop_id);
+		if (!class_prop && opt_reduced) {
+		  class_prop = check_for_parent_prop(ce, inst_props->prop_id);
+		}
 		if (!class_prop) {
-		  fprintf(stderr, "bad property name \"%s\"\n", inst_props->prop_id);
+		  fprintf(stderr, "bad property name \"%s\" for %s\n", inst_props->prop_id, inst_props->prop_class);
 		  return 1;
 		}
 		data = make_cmpi_data(class_prop->prop_type, class_prop->prop_array, inst_props->prop_value);

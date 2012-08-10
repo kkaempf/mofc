@@ -113,7 +113,7 @@ static qual_chain * merge_qualifiers(qual_chain * qu_ch1, qual_chain * qu_ch2)
   qual_chain * qu_help;
   
   while(qu_ch2) {
-    /* Special handling for ABSTRACT */
+    /* Special handling for ABSTRACT; don't propigate down to child class */
     if (strcasecmp(qu_ch2 -> qual_id,"abstract") == 0) {
       qu_ch2 = qu_ch2 -> qual_next;
       continue;
@@ -661,6 +661,27 @@ prop_chain * check_for_prop(class_entry * e, char * prop_id)
 	}
 	return 0;
 } 
+
+prop_chain * check_for_parent_prop(class_entry * e, char * prop_id)
+{
+
+  prop_chain* props = NULL;
+  class_entry* p = e->class_parent;
+
+  while (p) {
+    // fprintf(stderr, "checking parent %s for %s\n", p->class_id, prop_id);
+    props = check_for_prop(p, prop_id);
+    if (props) {
+      break;
+    }
+    else {
+      p = p->class_parent;
+    }
+  }
+
+  return props;
+
+}
 
 int check_for_keys(class_entry * ce, class_entry * ie)
 {

@@ -1,3 +1,8 @@
+2012-08-10  Chris Buccella  <buccella@linux.vnet.ibm.com>
+
+	* backend_sfcb.c, symtab.h, symtab.c:
+	[ 3555421 ] mofc chokes on static instances when using -t option
+
 2011-04-01  Chris Buccella  <buccella@linux.vnet.ibm.com>
 
 	* backend_sfcb.c:
