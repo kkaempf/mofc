@@ -169,11 +169,13 @@ static method_chain * merge_methods(method_chain * me_ch1, method_chain * me_ch2
 
 static prop_chain * merge_properties(prop_chain * pr_ch1, prop_chain * pr_ch2)
 {
+  //  fprintf(stderr, "   merging class %s props into class %s\n", pr_ch2->prop_class, pr_ch1->prop_class);
   prop_chain * pr_top = pr_ch1;
   prop_chain * pr_search;
   prop_chain * pr_help;
   
   while(pr_ch2) {
+    //    fprintf(stderr, "     prop %s\n", pr_ch2->prop_id);
     pr_search = pr_ch1;
     while (pr_search) {
       if (strcasecmp(pr_ch2 -> prop_id, pr_search -> prop_id)==0) {
@@ -184,13 +186,19 @@ static prop_chain * merge_properties(prop_chain * pr_ch1, prop_chain * pr_ch2)
       }
       pr_search = pr_search -> prop_next;
     }
+
+    //    if (pr_search == NULL && (pr_ch2 -> prop_attr & PROPERTY_KEY)) 
+      //      fprintf(stderr, "            merge_prop: we have a key\n");
+
     if (pr_search == NULL) {
+      if ((pr_ch2 -> prop_attr & PROPERTY_KEY)) {
       /* not found in list -- add */
       /* beware: may not modify list 2 chaining */
       pr_help = calloc( sizeof(prop_chain), 1);
       *pr_help = *pr_ch2;
       pr_help -> prop_next = pr_top;
       pr_top = pr_help;
+    }
     }
     pr_ch2 = pr_ch2 -> prop_next;
   }
@@ -250,6 +258,7 @@ static void do_inheritance( class_entry * ce )
     ce -> class_methods = merge_methods(ce -> class_methods, 
 					ce -> class_parent -> class_methods);
   }
+
   ce -> class_attr |= CLASS_COMPLETED;
 }
 
@@ -659,7 +668,7 @@ prop_chain * check_for_prop(class_entry * e, char * prop_id)
 		else
 			return props;
 	}
-	return 0;
+	return NULL;
 } 
 
 prop_chain * check_for_parent_prop(class_entry * e, char * prop_id)
@@ -724,7 +733,18 @@ class_entry * get_class_def_for_instance(class_entry * ie)
 	
 	symtab_entry * se = htlookup(current_symtab, upstrdup(className,strlen(className)), strlen(className));
 	if(se && !(se->sym_union.sym_class->class_attr & CLASS_FORWARDDECL)) {
-		return se->sym_union.sym_class;
+                class_entry* ce = se->sym_union.sym_class;
+
+                if (opt_reduced) {  /* need to merge ancestor's props to get full object path */
+                  class_entry* next = ce;
+                  while (next->class_parent) {
+                    ce -> class_props = merge_properties(ce -> class_props,
+                                                         next -> class_parent -> class_props);
+                    next=next->class_parent;
+                  }
+                }
+
+		return ce;
 	}
 	else {
 		sprintf(symerrstr,"class definition for %s not found",className);

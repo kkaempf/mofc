@@ -247,7 +247,7 @@ static int sfcb_add_class(FILE * f, hashentry * he, class_entry * ce, int endian
     }
     while (quals) {
       if (sfcb_options & BACKEND_VERBOSE) {
-	fprintf(stderr,"  adding qualifier %s for class %s \n", 
+	fprintf(stderr,"    adding qualifier %s for class %s \n", 
 		quals -> qual_id, ce -> class_id );
       }
       qual_id =  
@@ -261,10 +261,10 @@ static int sfcb_add_class(FILE * f, hashentry * he, class_entry * ce, int endian
     while (props) {
       if (sfcb_options & BACKEND_VERBOSE) {
 	if (props->prop_attr & PROPERTY_KEY)
-	  fprintf(stderr,"  adding key property %s for class %s \n",
+	  fprintf(stderr,"    adding key property %s for class %s \n",
 		  props -> prop_id, ce -> class_id );
 	else
-	  fprintf(stderr,"  adding property %s for class %s \n",
+	  fprintf(stderr,"    adding property %s for class %s \n",
 		  props -> prop_id, ce -> class_id );
       }
       data = make_cmpi_data(props->prop_type, props->prop_array, props->prop_value);
@@ -283,7 +283,7 @@ static int sfcb_add_class(FILE * f, hashentry * he, class_entry * ce, int endian
 	     strcasecmp("valuemap",quals->qual_id) &&
 	     strcasecmp("values",quals->qual_id) ) ) {
 	  if (sfcb_options & BACKEND_VERBOSE) {
-	    fprintf(stderr,"  adding qualifier %s for property %s in class %s\n", 
+	    fprintf(stderr,"        adding qualifier %s for property %s in class %s\n", 
 		    quals -> qual_id, props -> prop_id, ce -> class_id );
 	  }
 	  qual_id = 
@@ -339,10 +339,12 @@ static int sfcb_add_class(FILE * f, hashentry * he, class_entry * ce, int endian
     		}
     		meth_params = meth_params->param_next;
     	}
+
     	meths = meths->method_next;
     }    
     
     sfcbClassRewritten = ClClassRebuildClass(sfcbClass,NULL);
+
     if (opt_reduced) {
         sfcbClassRewritten->hdr.type = HDR_IncompleteClass;
     }
@@ -372,7 +374,13 @@ CMPIObjectPath * mofc_getObjectPath(class_entry * ce, class_entry * ie, const ch
 	
 	while(classprop) {
 		if(classprop->prop_attr & PROPERTY_KEY) { //found key - see if it's defined in the instance
+		        //        fprintf(stderr, " getOP: adding a key\n");
 			tempprop = check_for_prop(ie, classprop->prop_id);
+			if (opt_reduced && !tempprop) {
+			  //	  fprintf(stderr, " getOP: prop not found; checking parent\n");
+			  tempprop = check_for_parent_prop(ie, classprop->prop_id);
+			  // if (tempprop) fprintf(stderr, " getOP: found prop in parent");
+			}
 			if (tempprop) {
 				data = make_cmpi_data(classprop->prop_type, classprop->prop_array, tempprop->prop_value);
 				path->ft->addKey(path, tempprop->prop_id, &data.value, data.type);
@@ -385,6 +393,7 @@ CMPIObjectPath * mofc_getObjectPath(class_entry * ce, class_entry * ie, const ch
 	}
 	return path;
 }
+
 
 int sfcb_add_qualifier(qual_entry * q, const char * ns)
 {
@@ -440,13 +449,12 @@ int sfcb_add_instance(class_entry * ie, const char * ns)
 	void * blob;
 	int len, size;
 	CMPIData data;
-	class_entry * ce=NULL; //class definition for ie
+	class_entry * ce=NULL; //class definition for instance ie
 	CMPIObjectPath * path;
 	ClInstance * inst;
 	CMPIInstance* cmpi_instance = malloc(sizeof(CMPIInstance));
 	prop_chain * class_prop;
 	prop_chain * inst_props = ie -> class_props;
-	
 	
 	ce = get_class_def_for_instance(ie);
 	if(!ce) {
@@ -457,7 +465,8 @@ int sfcb_add_instance(class_entry * ie, const char * ns)
 	}
 
 	path = mofc_getObjectPath(ce, ie, ns);
-    
+	//	fprintf(stderr, "add_inst: OP= %s\n", CMGetCharPtr(path->ft->toString(path, NULL)));
+
     if (ie->instmig)
     	inst = ClInstanceNew(ns, ie->class_id);
     else
@@ -465,7 +474,7 @@ int sfcb_add_instance(class_entry * ie, const char * ns)
 
     while (inst_props) {
 		if (sfcb_options & BACKEND_VERBOSE) {
-			fprintf(stderr,"  adding property %s for instance %s \n", 
+			fprintf(stderr,"add_inst:  adding property %s for instance %s \n", 
 			inst_props -> prop_id, ie -> class_id );
 		}
 		class_prop = check_for_prop(ce, inst_props->prop_id);
@@ -534,7 +543,7 @@ int backend_sfcb(class_chain * cls_chain, class_chain * inst_chain, qual_chain *
     return 1;
   }*/
   sfcb_options = options;
-  
+
   if (strchr(extraopts,'Q')) {
     sfcb_options |= BACKEND_SFCB_NO_QUALIFIERS;
     sfcb_options |= BACKEND_SFCB_REDUCED_QUALIFIERS;
