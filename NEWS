@@ -8,6 +8,7 @@ Enhancements:
 - 3019898 Remove cmpi headers
 - 3179149 mofc sigsegv at backend_sfcb:468 w/o correct property name
 - 3555421 mofc chokes on static instances when using -t option
+- 3558562 mofc creates invalid static instances when using -t option
 
 Changes in 0.8.4
 ================

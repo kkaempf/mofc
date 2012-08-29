@@ -191,14 +191,14 @@ static prop_chain * merge_properties(prop_chain * pr_ch1, prop_chain * pr_ch2)
       //      fprintf(stderr, "            merge_prop: we have a key\n");
 
     if (pr_search == NULL) {
-      if ((pr_ch2 -> prop_attr & PROPERTY_KEY)) {
+      //      if ((pr_ch2 -> prop_attr & PROPERTY_KEY)) {
       /* not found in list -- add */
       /* beware: may not modify list 2 chaining */
       pr_help = calloc( sizeof(prop_chain), 1);
       *pr_help = *pr_ch2;
       pr_help -> prop_next = pr_top;
       pr_top = pr_help;
-    }
+      //    }
     }
     pr_ch2 = pr_ch2 -> prop_next;
   }
