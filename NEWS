@@ -10,6 +10,9 @@ Enhancements:
 - 3555421 mofc chokes on static instances when using -t option
 - 3558562 mofc creates invalid static instances when using -t option
 
+Bugs fixed:
+- 2878328 sfcb and mofc won't compile with --disable-qualifierrep
+
 Changes in 0.8.4
 ================
 

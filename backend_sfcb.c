@@ -97,7 +97,6 @@ static CMPIData make_cmpi_data( type_type lextype, int arrayspec,
   CMPIData data;
   CMPIData arr_data;
   int i = 0;
-  CMPIStatus st;
   
   data.type = make_cmpi_type(lextype,arrayspec);
   data.value.uint64 = 0L;        /* set to binary zeros */
@@ -118,7 +117,7 @@ static CMPIData make_cmpi_data( type_type lextype, int arrayspec,
 	CMNewArray(Broker,0,data.type&~CMPI_ARRAY,NULL);
       while (vals && vals -> val_value) {
 	arr_data = make_cmpi_data(lextype,-1,vals);
-     st=sfcb_simpleArrayAdd(data.value.array, &arr_data.value, data.type&~CMPI_ARRAY);
+        sfcb_simpleArrayAdd(data.value.array, &arr_data.value, data.type&~CMPI_ARRAY);
 	i++;
 	vals = vals -> val_next;
       }
@@ -194,7 +193,6 @@ static void sfcb_add_version(FILE * f, unsigned short opt, int endianMode)
 {
    ClVersionRecord rec;
    long size;
-   
    rec = ClBuildVersionRecord(opt, endianMode, &size);
    fwrite(&rec,size,1,f);
 }
@@ -210,7 +208,6 @@ static int sfcb_add_class(FILE * f, hashentry * he, class_entry * ce, int endian
   CMPIParameter param;
   CMPIData data;
   int prop_id;
-  int qual_id;
   int meth_id;
   int meth_param_id;
   int size;
@@ -250,12 +247,11 @@ static int sfcb_add_class(FILE * f, hashentry * he, class_entry * ce, int endian
 	fprintf(stderr,"    adding qualifier %s for class %s \n", 
 		quals -> qual_id, ce -> class_id );
       }
-      qual_id =  
-	ClClassAddQualifier(&sfcbClass->hdr, &sfcbClass->qualifiers,
-			    quals->qual_id, 
-			    make_cmpi_data(quals->qual_qual->qual_type,
-					   quals->qual_qual->qual_array,
-					   quals->qual_vals));
+      ClClassAddQualifier(&sfcbClass->hdr, &sfcbClass->qualifiers,
+                          quals->qual_id,
+                          make_cmpi_data(quals->qual_qual->qual_type,
+                                         quals->qual_qual->qual_array,
+                                         quals->qual_vals));
       quals = quals -> qual_next;
     }
     while (props) {
@@ -286,13 +282,12 @@ static int sfcb_add_class(FILE * f, hashentry * he, class_entry * ce, int endian
 	    fprintf(stderr,"        adding qualifier %s for property %s in class %s\n", 
 		    quals -> qual_id, props -> prop_id, ce -> class_id );
 	  }
-	  qual_id = 
-	    ClClassAddPropertyQualifier(&sfcbClass->hdr, 
-					sfcbProp,
-					quals->qual_id, 
-					make_cmpi_data(quals->qual_qual->qual_type,
-						       quals->qual_qual->qual_array,
-						       quals->qual_vals));
+          ClClassAddPropertyQualifier(&sfcbClass->hdr,
+                                      sfcbProp,
+                                      quals->qual_id,
+                                      make_cmpi_data(quals->qual_qual->qual_type,
+                                                     quals->qual_qual->qual_array,
+                                                     quals->qual_vals));
 	}
 	quals = quals -> qual_next;
       }
@@ -394,7 +389,7 @@ CMPIObjectPath * mofc_getObjectPath(class_entry * ce, class_entry * ie, const ch
 	return path;
 }
 
-
+#ifdef HAVE_QUALREP
 int sfcb_add_qualifier(qual_entry * q, const char * ns)
 {
 	ClQualifierDeclaration * qual;
@@ -443,6 +438,7 @@ int sfcb_add_qualifier(qual_entry * q, const char * ns)
 	free(blob);		
 	return 0;
 }
+#endif // HAVE_QUALREP
 
 int sfcb_add_instance(class_entry * ie, const char * ns)
 {	
@@ -604,13 +600,16 @@ int backend_sfcb(class_chain * cls_chain, class_chain * inst_chain, qual_chain *
   	}
     inst_chain = inst_chain -> class_next;
   }
+
+#ifdef HAVE_QUALREP
   while (qual_chain && qual_chain->qual_qual) {
   	if(sfcb_add_qualifier(qual_chain->qual_qual, ns)) {
   		return 1;
   	}
     qual_chain = qual_chain -> qual_next;
   }
-  
+#endif
+
   if(class_file) fclose(class_file);
   return 0;
 }
