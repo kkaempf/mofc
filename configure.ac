@@ -35,6 +35,13 @@ AC_ARG_ENABLE(namespace-kludge,
 AC_ARG_ENABLE(testscanner,
 	      [AC_HELP_STRING([--enable-testscanner],
 		              [produce a standalone scanner for testing.])])
+AC_ARG_ENABLE(qualifierrep,
+	[AC_HELP_STRING([--disable-qualifierrep],
+		[disable qualifier repository support.])],
+	[enable_qualifierrep=$enableval],
+	[enable_qualifierrep="yes"]
+	)
+
 AC_ARG_VAR(SFCB_DIR,
       [set SFCB_DIR to the directory containing the SFCB sources, 
        if configure fails to find it.])
@@ -123,6 +130,10 @@ fi
 
 if test "$enable_onepass" = yes; then
   AC_DEFINE(ONEPASS,,[One-Pass Parsing])
+fi
+
+if test "$enable_qualifierrep" == "yes"; then
+   AC_DEFINE(HAVE_QUALREP,,[Qualifier repository support enabled.])
 fi
 
 AM_CONDITIONAL(TESTSCANNER,[test "$enable_testscanner" == yes]) 
